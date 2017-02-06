@@ -1,0 +1,163 @@
+package com.tarunisrani.dailykharcha.dbhelper;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.tarunisrani.dailykharcha.model.Sheet;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
+import static android.content.ContentValues.TAG;
+
+/**
+ * Created by tarunisrani on 12/21/16.
+ */
+public class ExpenseSheetDataSource {
+
+    public static final String TABLE_NAME = "sheet";
+
+    public static final String COLUMN_ID = "sheet_id";
+    public static final String COLUMN_NAME = "sheet_name";
+    public static final String COLUMN_DATE = "sheet_date";
+    public static final String COLUMN_AMOUNT = "expense_amount";
+
+    private DatabaseHelper databaseHelper;
+
+    // Database creation sql statement
+    private static final String DATABASE_CREATE = "create table if not exists " + TABLE_NAME + "( "
+            + COLUMN_ID + " integer primary key autoincrement, "
+            + COLUMN_NAME + " text, "
+            + COLUMN_DATE + " text, "
+            + COLUMN_AMOUNT + " float "
+            +");";
+
+    private static final String SQL_DELETE_ENTRIES =
+            "DROP TABLE IF EXISTS " + TABLE_NAME;
+
+    private String[] allColumns = {COLUMN_ID, COLUMN_DATE, COLUMN_NAME, COLUMN_AMOUNT, COLUMN_AMOUNT};
+
+
+
+    public ExpenseSheetDataSource(Context context) {
+        databaseHelper = DatabaseHelper.getmInstance(context);
+        databaseHelper.createTable(DATABASE_CREATE);
+    }
+
+    public long createSheetEntry(Sheet sheet){
+        SQLiteDatabase database = databaseHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_DATE, sheet.getSheet_creation_date());
+        values.put(COLUMN_NAME, sheet.getSheet_name());
+        values.put(COLUMN_AMOUNT, sheet.getAmount());
+
+        long insertId = database.insert(TABLE_NAME, null,
+                values);
+        database.close();
+        return insertId;
+    }
+
+    public void createSheetEntryOnServer(Sheet sheet) throws JSONException{
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference reference = database.getReference(TABLE_NAME);
+
+        JSONObject jsonObject = new JSONObject();
+
+        jsonObject.put(COLUMN_DATE, sheet.getSheet_creation_date());
+        jsonObject.put(COLUMN_NAME, sheet.getSheet_name());
+        jsonObject.put(COLUMN_AMOUNT, sheet.getAmount());
+
+        reference.push().setValue(jsonObject.toString());
+    }
+
+    public ArrayList<Sheet> getSheetList(){
+        ArrayList<Sheet> sheetArrayList = new ArrayList<>();
+        SQLiteDatabase database = databaseHelper.getReadableDatabase();
+        Cursor cursor = database.query(TABLE_NAME,
+                allColumns, null, null,
+                null, null, null);
+        cursor.moveToFirst();
+        while(!cursor.isAfterLast()){
+            sheetArrayList.add(new Sheet(cursor));
+            cursor.moveToNext();
+        }
+        database.close();
+        cursor.close();
+        return sheetArrayList;
+    }
+
+    public ArrayList<Sheet> getSheetListFromServer(){
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference reference = database.getReference(TABLE_NAME);
+        ArrayList<Sheet> sheetArrayList = new ArrayList<>();
+
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+//                HashMap value = (HashMap) dataSnapshot.getValue();
+
+                Log.d(TAG, "Value is: " + dataSnapshot.getValue());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Log.w(TAG, "Failed to read value.", error.toException());
+            }
+        });
+
+
+
+        return sheetArrayList;
+    }
+
+    public ArrayList<Sheet> getSheet(int id){
+        ArrayList<Sheet> saleItemArrayList = new ArrayList<>();
+        SQLiteDatabase database = databaseHelper.getReadableDatabase();
+        Cursor cursor = database.query(TABLE_NAME,
+                allColumns, COLUMN_ID + " = " + id, null,
+                null, null, null);
+        cursor.moveToFirst();
+        while(!cursor.isAfterLast()){
+            saleItemArrayList.add(new Sheet(cursor));
+            cursor.moveToNext();
+        }
+        database.close();
+        cursor.close();
+        return saleItemArrayList;
+    }
+
+    public boolean updateSheetEntry(Sheet sheet){
+        SQLiteDatabase database = databaseHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_DATE, sheet.getSheet_creation_date());
+        values.put(COLUMN_NAME, sheet.getSheet_name());
+        values.put(COLUMN_AMOUNT, sheet.getAmount());
+
+        long count = database.update(TABLE_NAME,
+                values, COLUMN_ID + " = ?", new String[]{String.valueOf(sheet.getSheet_id())});
+        database.close();
+
+        return count == 1;
+    }
+
+    public boolean removeSheetEntry(Sheet sheet){
+        SQLiteDatabase database = databaseHelper.getWritableDatabase();
+        long count = database.delete(TABLE_NAME, COLUMN_ID + " = ?", new String[]{String.valueOf(sheet.getSheet_id())});
+        database.close();
+
+        return count > 0;
+    }
+}
