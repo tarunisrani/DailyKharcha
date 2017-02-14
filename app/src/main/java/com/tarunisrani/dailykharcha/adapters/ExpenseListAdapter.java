@@ -186,20 +186,26 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
     public class CustomComparator implements Comparator<Expense> {
         @Override
         public int compare(Expense o1, Expense o2) {
-            int code = 0;
+            long code = 0;
             try {
                 DateFormat df = new SimpleDateFormat("mm/dd/yyyy");
                 Date date1 = df.parse(o1.getExpense_date());
                 Date date2 = df.parse(o2.getExpense_date());
                 code = date1.compareTo(date2);
-                if(code == 0){
+                if(code == 0 && o1.getServer_expense_id()!=null && o2.getServer_expense_id()!=null){
+                    code = o1.getServer_expense_id().compareToIgnoreCase(o2.getServer_expense_id());
+                    if(code == 0){
+                        code = o1.getId() - o2.getId();
+
+                    }
+                }else{
                     code = o1.getId() - o2.getId();
                 }
             } catch (ParseException exp){
                 exp.printStackTrace();
             }
 
-            return code;
+            return (int)code;
         }
     }
 }

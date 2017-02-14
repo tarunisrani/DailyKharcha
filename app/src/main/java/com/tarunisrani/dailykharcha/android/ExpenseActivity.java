@@ -19,12 +19,15 @@ import com.tarunisrani.dailykharcha.model.Sheet;
 
 import org.json.JSONException;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 
 public class ExpenseActivity extends AppCompatActivity implements View.OnClickListener, ExpenseSheetListClickListener {
 
     private RecyclerView expenses_sheet_list_view;
     private ExpenseSheetListAdapter sheetListAdapter;
+
+    private ArrayList<Sheet> prepopulatedSheetList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +55,8 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
     private void fetchSheetList(){
         ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(this);
-        sheetListAdapter.setSheetList(expenseSheetDataSource.getSheetList());
+        prepopulatedSheetList = expenseSheetDataSource.getSheetList();
+        sheetListAdapter.setSheetList(prepopulatedSheetList);
         sheetListAdapter.notifyDataSetChanged();
     }
 
@@ -152,6 +156,10 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
     }
 
+    private void performSyncOperation(){
+
+    }
+
     private void performAnalysisOperation(int position){
         Sheet sheet = sheetListAdapter.getItem(position);
         Intent intent = new Intent(this, AnalyseSheetActivity.class);
@@ -166,7 +174,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
                 addNewSheetInList();
                 break;
             case R.id.button_sync_all_expense_sheet:
-
+                performSyncOperation();
                 break;
         }
     }

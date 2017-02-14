@@ -11,12 +11,15 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.tarunisrani.dailykharcha.listeners.ServerExpenseDataListener;
+import com.tarunisrani.dailykharcha.model.Expense;
 import com.tarunisrani.dailykharcha.model.Sheet;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import static android.content.ContentValues.TAG;
 
@@ -28,6 +31,7 @@ public class ExpenseSheetDataSource {
     public static final String TABLE_NAME = "sheet";
 
     public static final String COLUMN_ID = "sheet_id";
+    public static final String COLUMN_ID_SERVER = "sheet_id_server";
     public static final String COLUMN_NAME = "sheet_name";
     public static final String COLUMN_DATE = "sheet_date";
     public static final String COLUMN_AMOUNT = "expense_amount";
@@ -37,6 +41,7 @@ public class ExpenseSheetDataSource {
     // Database creation sql statement
     private static final String DATABASE_CREATE = "create table if not exists " + TABLE_NAME + "( "
             + COLUMN_ID + " integer primary key autoincrement, "
+            + COLUMN_ID_SERVER + " text, "
             + COLUMN_NAME + " text, "
             + COLUMN_DATE + " text, "
             + COLUMN_AMOUNT + " float "
@@ -45,9 +50,9 @@ public class ExpenseSheetDataSource {
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + TABLE_NAME;
 
-    private String[] allColumns = {COLUMN_ID, COLUMN_DATE, COLUMN_NAME, COLUMN_AMOUNT, COLUMN_AMOUNT};
+    private String[] allColumns = {COLUMN_ID, COLUMN_ID_SERVER, COLUMN_DATE, COLUMN_NAME, COLUMN_AMOUNT, COLUMN_AMOUNT};
 
-
+    private ValueEventListener valueEventListener;
 
     public ExpenseSheetDataSource(Context context) {
         databaseHelper = DatabaseHelper.getmInstance(context);
@@ -57,6 +62,7 @@ public class ExpenseSheetDataSource {
     public long createSheetEntry(Sheet sheet){
         SQLiteDatabase database = databaseHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
+        values.put(COLUMN_ID_SERVER, sheet.getServer_id());
         values.put(COLUMN_DATE, sheet.getSheet_creation_date());
         values.put(COLUMN_NAME, sheet.getSheet_name());
         values.put(COLUMN_AMOUNT, sheet.getAmount());
@@ -67,7 +73,7 @@ public class ExpenseSheetDataSource {
         return insertId;
     }
 
-    public void createSheetEntryOnServer(Sheet sheet) throws JSONException{
+    public void createSheetEntryOnServer(final Sheet sheet) throws JSONException{
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference reference = database.getReference(TABLE_NAME);
 
@@ -77,7 +83,29 @@ public class ExpenseSheetDataSource {
         jsonObject.put(COLUMN_NAME, sheet.getSheet_name());
         jsonObject.put(COLUMN_AMOUNT, sheet.getAmount());
 
-        reference.push().setValue(jsonObject.toString());
+
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot!=null && dataSnapshot.getValue()!=null) {
+                    Log.e("Expense", dataSnapshot.getKey() + "  --  " + dataSnapshot.getValue().toString());
+                    sheet.setServer_id(dataSnapshot.getKey());
+                    if (updateSheetEntry(sheet)) {
+                        Log.d("Update", "Successfully updated server sheet id");
+                    } else {
+                        Log.d("Update", "Failed to update server sheet id");
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+        reference.push().setValue(sheet);
     }
 
     public ArrayList<Sheet> getSheetList(){
@@ -94,6 +122,47 @@ public class ExpenseSheetDataSource {
         database.close();
         cursor.close();
         return sheetArrayList;
+    }
+
+    public void getSheetItemsFromServer(final boolean oneTimeFetch, final ServerExpenseDataListener listener){
+        removeSync();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference reference = database.getReference(TABLE_NAME);
+        valueEventListener = reference.child("sheets").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ArrayList<Expense> expenseArrayList = new ArrayList<>();
+                if (dataSnapshot!=null) {
+                    Iterator<DataSnapshot> iterator = dataSnapshot.getChildren().iterator();
+                    while (iterator.hasNext()) {
+                        DataSnapshot dataSnapshot_temp = iterator.next();
+                        Expense expense = dataSnapshot_temp.getValue(Expense.class);
+                        expense.setServer_expense_id(dataSnapshot_temp.getKey());
+                        expenseArrayList.add(expense);
+                        Log.e("Expense", dataSnapshot_temp.getKey() + "  --  " + dataSnapshot_temp.getValue().toString());
+                    }
+
+                }
+                if(oneTimeFetch) {
+                    reference.child("sheets").removeEventListener(this);
+                }
+                listener.onServerDataRetrieved(expenseArrayList);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void removeSync(){
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference reference = database.getReference(TABLE_NAME);
+        if(valueEventListener!=null) {
+            reference.child("sheets").removeEventListener(valueEventListener);
+        }
+
     }
 
     public ArrayList<Sheet> getSheetListFromServer(){

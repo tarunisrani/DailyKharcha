@@ -17,7 +17,8 @@ public class Expense implements Parcelable {
         expense_group = in.readString();
         expense_type = in.readString();
         payment_type = in.readString();
-        id = in.readInt();
+        server_expense_id = in.readString();
+        id = in.readLong();
         sheet_id = in.readLong();
         amount = in.readDouble();
     }
@@ -90,20 +91,30 @@ public class Expense implements Parcelable {
         this.sheet_id = sheet_id;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
+    }
+
+    public String getServer_expense_id() {
+        return server_expense_id;
+    }
+
+    public void setServer_expense_id(String server_expense_id) {
+        this.server_expense_id = server_expense_id;
+//        this.server_expense_id = this.server_expense_id.replaceAll("-", "\\-");
     }
 
     private String expense_date;
     private String expense_detail;
-    private String expense_group;
+    private String expense_group = "";
     private String expense_type;
-    private int id;
+    private long id;
     private long sheet_id;
+    private String server_expense_id;
     private String payment_type;
     private double amount;
 
@@ -112,14 +123,27 @@ public class Expense implements Parcelable {
     }
 
     public Expense(Cursor cursor){
-        this.id = cursor.getInt(cursor.getColumnIndex(ExpenseDataSource.COLUMN_ID));
+        this.id = cursor.getLong(cursor.getColumnIndex(ExpenseDataSource.COLUMN_ID));
+        this.server_expense_id = cursor.getString(cursor.getColumnIndex(ExpenseDataSource.COLUMN_ID_SERVER));
         this.sheet_id = cursor.getLong(cursor.getColumnIndex(ExpenseDataSource.COLUMN_SHEET_ID));
         this.expense_date = cursor.getString(cursor.getColumnIndex(ExpenseDataSource.COLUMN_DATE));
         this.expense_detail = cursor.getString(cursor.getColumnIndex(ExpenseDataSource.COLUMN_DETAIL));
-        this.expense_group = cursor.getString(cursor.getColumnIndex(ExpenseDataSource.COLUMN_DETAIL));
+        this.expense_group = cursor.getString(cursor.getColumnIndex(ExpenseDataSource.COLUMN_GROUP));
         this.expense_type = cursor.getString(cursor.getColumnIndex(ExpenseDataSource.COLUMN_EXPENSE_TYPE));
         this.payment_type = cursor.getString(cursor.getColumnIndex(ExpenseDataSource.COLUMN_PAYMENT_TYPE));
         this.amount = cursor.getDouble(cursor.getColumnIndex(ExpenseDataSource.COLUMN_AMOUNT));
+    }
+
+    public void updateExpense(Expense expense){
+        this.id = expense.getId();
+        this.server_expense_id = expense.getServer_expense_id();
+        this.sheet_id = expense.getSheet_id();
+        this.expense_date = expense.getExpense_date();
+        this.expense_detail = expense.getExpense_detail();
+        this.expense_group = expense.getExpense_group();
+        this.expense_type = expense.getExpense_type();
+        this.payment_type = expense.getPayment_type();
+        this.amount = expense.getAmount();
     }
 
     @Override
@@ -134,8 +158,38 @@ public class Expense implements Parcelable {
         dest.writeString(expense_group);
         dest.writeString(expense_type);
         dest.writeString(payment_type);
-        dest.writeInt(id);
+        dest.writeString(server_expense_id);
+        dest.writeLong(id);
         dest.writeLong(sheet_id);
         dest.writeDouble(amount);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(o instanceof Expense){
+            if(((Expense)o).getServer_expense_id()!=null && this.server_expense_id!=null) {
+                return ((Expense) o).getServer_expense_id().equalsIgnoreCase(this.server_expense_id);
+            }else{
+                return ((Expense) o).getId() == this.id;
+            }
+        }
+        return super.equals(o);
+    }
+
+    @Override
+    public String toString() {
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("id = "+this.id +"\t");
+        builder.append("server_expense_id = "+this.server_expense_id +"\t");
+        builder.append("sheet_id = "+this.sheet_id +"\t");
+        builder.append("expense_date = "+this.expense_date +"\t");
+        builder.append("expense_detail = "+this.expense_detail +"\t");
+        builder.append("expense_group = "+this.expense_group +"\t");
+        builder.append("expense_type = "+this.expense_type +"\t");
+        builder.append("payment_type = "+this.payment_type +"\t");
+        builder.append("amount = "+this.amount +"\t");
+
+        return builder.toString();
     }
 }

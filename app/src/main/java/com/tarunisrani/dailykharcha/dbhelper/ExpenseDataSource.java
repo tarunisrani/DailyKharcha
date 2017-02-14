@@ -3,16 +3,21 @@ package com.tarunisrani.dailykharcha.dbhelper;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.tarunisrani.dailykharcha.listeners.ServerExpenseDataListener;
 import com.tarunisrani.dailykharcha.model.Expense;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Created by tarunisrani on 12/21/16.
@@ -22,6 +27,7 @@ public class ExpenseDataSource {
     public static final String TABLE_NAME = "expense";
 
     public static final String COLUMN_ID = "expense_id";
+    public static final String COLUMN_ID_SERVER = "expense_id_server";
     public static final String COLUMN_SHEET_ID = "expense_sheet_id";
     public static final String COLUMN_DATE = "expense_date";
     public static final String COLUMN_DETAIL = "expense_detail";
@@ -35,6 +41,7 @@ public class ExpenseDataSource {
     // Database creation sql statement
     private static final String DATABASE_CREATE = "create table if not exists " + TABLE_NAME + "( "
             + COLUMN_ID + " integer primary key autoincrement, "
+            + COLUMN_ID_SERVER + " text, "
             + COLUMN_SHEET_ID + " integer, "
             + COLUMN_DATE + " text, "
             + COLUMN_DETAIL + " text, "
@@ -47,9 +54,11 @@ public class ExpenseDataSource {
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + TABLE_NAME;
 
-    private String[] allColumns = {COLUMN_ID, COLUMN_SHEET_ID, COLUMN_DATE, COLUMN_DETAIL, COLUMN_GROUP, COLUMN_AMOUNT,
+    private String[] allColumns = {COLUMN_ID, COLUMN_ID_SERVER, COLUMN_SHEET_ID, COLUMN_DATE, COLUMN_DETAIL, COLUMN_GROUP, COLUMN_AMOUNT,
             COLUMN_EXPENSE_TYPE, COLUMN_PAYMENT_TYPE};
 
+
+    private ValueEventListener valueEventListener;
 
 
     public ExpenseDataSource(Context context) {
@@ -57,10 +66,11 @@ public class ExpenseDataSource {
         databaseHelper.createTable(DATABASE_CREATE);
     }
 
-    public boolean createExpenseEntry(Expense expense){
+    public long createExpenseEntry(Expense expense){
         SQLiteDatabase database = databaseHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_SHEET_ID, expense.getSheet_id());
+        values.put(COLUMN_ID_SERVER, expense.getServer_expense_id());
         values.put(COLUMN_DATE, expense.getExpense_date());
         values.put(COLUMN_DETAIL, expense.getExpense_detail());
         values.put(COLUMN_GROUP, expense.getExpense_group());
@@ -71,25 +81,10 @@ public class ExpenseDataSource {
         long insertId = database.insert(TABLE_NAME, null,
                 values);
         database.close();
-        return insertId != -1;
+        return insertId ;
     }
 
-    public void createExpenseEntryOnServer(Expense expense) throws JSONException{
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference reference = database.getReference(TABLE_NAME);
 
-        JSONObject jsonObject = new JSONObject();
-
-        jsonObject.put(COLUMN_SHEET_ID, expense.getSheet_id());
-        jsonObject.put(COLUMN_DATE, expense.getExpense_date());
-        jsonObject.put(COLUMN_DETAIL, expense.getExpense_detail());
-        jsonObject.put(COLUMN_GROUP, expense.getExpense_group());
-        jsonObject.put(COLUMN_AMOUNT, expense.getAmount());
-        jsonObject.put(COLUMN_EXPENSE_TYPE, expense.getExpense_type());
-        jsonObject.put(COLUMN_PAYMENT_TYPE, expense.getPayment_type());
-
-        reference.push().setValue(jsonObject.toString());
-    }
 
     public int createExpenseEntry(ArrayList<Expense> expenseArrayList){
         int count = 0;
@@ -111,10 +106,13 @@ public class ExpenseDataSource {
         return count;
     }
 
-    public boolean updateSheetEntry(Expense expense){
+    public long updateExpenseEntry(Expense expense){
+        Log.i("Updating database", expense.toString());
+
         SQLiteDatabase database = databaseHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_SHEET_ID, expense.getSheet_id());
+        values.put(COLUMN_ID_SERVER, expense.getServer_expense_id());
         values.put(COLUMN_DATE, expense.getExpense_date());
         values.put(COLUMN_DETAIL, expense.getExpense_detail());
         values.put(COLUMN_GROUP, expense.getExpense_group());
@@ -123,10 +121,37 @@ public class ExpenseDataSource {
         values.put(COLUMN_PAYMENT_TYPE, expense.getPayment_type());
 
         long count = database.update(TABLE_NAME,
-                values, COLUMN_ID + " = ?", new String[]{String.valueOf(expense.getId())});
+                values, COLUMN_ID + " = "+String.valueOf(expense.getId()), null);
         database.close();
 
-        return count == 1;
+        return (count > 0)?expense.getId():-1;
+    }
+
+    public boolean updateSheetEntryWithServerID(Expense expense){
+        Log.i("Updating database", expense.toString());
+
+
+        SQLiteDatabase database = databaseHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_SHEET_ID, expense.getSheet_id());
+//        values.put(COLUMN_ID_SERVER, expense.getServer_expense_id());
+        values.put(COLUMN_DATE, expense.getExpense_date());
+        values.put(COLUMN_DETAIL, expense.getExpense_detail());
+        values.put(COLUMN_GROUP, expense.getExpense_group());
+        values.put(COLUMN_AMOUNT, expense.getAmount());
+        values.put(COLUMN_EXPENSE_TYPE, expense.getExpense_type());
+        values.put(COLUMN_PAYMENT_TYPE, expense.getPayment_type());
+
+        long count = 0;
+        try {
+            database.update(TABLE_NAME,
+                    values, COLUMN_ID_SERVER + " = " + DatabaseUtils.sqlEscapeString(expense.getServer_expense_id()), null);
+        }catch (SQLException exp){
+            exp.printStackTrace();
+        }
+        database.close();
+
+        return count > 0;
     }
 
     public ArrayList<Expense> getExpenseItems(long sheet_id){
@@ -143,6 +168,47 @@ public class ExpenseDataSource {
         database.close();
         cursor.close();
         return expenseArrayList;
+    }
+
+    public void getExpenseItemsFromServer(final long sheet_id, final boolean oneTimeFetch, final ServerExpenseDataListener listener){
+        removeSync(sheet_id);
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference reference = database.getReference(TABLE_NAME);
+        valueEventListener = reference.child(sheet_id+"").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ArrayList<Expense> expenseArrayList = new ArrayList<>();
+                if (dataSnapshot!=null) {
+                    Iterator<DataSnapshot> iterator = dataSnapshot.getChildren().iterator();
+                    while (iterator.hasNext()) {
+                        DataSnapshot dataSnapshot_temp = iterator.next();
+                        Expense expense = dataSnapshot_temp.getValue(Expense.class);
+                        expense.setServer_expense_id(dataSnapshot_temp.getKey());
+                        expenseArrayList.add(expense);
+                        Log.e("Expense", dataSnapshot_temp.getKey() + "  --  " + dataSnapshot_temp.getValue().toString());
+                    }
+
+                }
+                if(oneTimeFetch) {
+                    reference.child(sheet_id + "").removeEventListener(this);
+                }
+                listener.onServerDataRetrieved(expenseArrayList);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void removeSync(long sheet_id){
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference reference = database.getReference(TABLE_NAME);
+        if(valueEventListener!=null) {
+            reference.child(sheet_id + "").removeEventListener(valueEventListener);
+        }
+
     }
 
     public ArrayList<Expense> getExpenseItems(){

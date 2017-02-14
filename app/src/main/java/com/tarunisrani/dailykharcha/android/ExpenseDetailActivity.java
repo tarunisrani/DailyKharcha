@@ -48,6 +48,7 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
         expenseListAdapter = new ExpenseListAdapter(this);
 
         ImageView button_add_expense_item = (ImageView) findViewById(R.id.button_add_expense_item);
+        ImageView expense_detail_sync_button = (ImageView) findViewById(R.id.expense_detail_sync_button);
         ImageView button_submit_expense_sheet = (ImageView) findViewById(R.id.button_submit_expense_sheet);
         total_amount_value = (TextView) findViewById(R.id.total_amount_value);
         TextView expense_detail_sheet_name = (TextView) findViewById(R.id.expense_detail_sheet_name);
@@ -63,17 +64,24 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
         linearLayout.setOrientation(LinearLayoutManager.VERTICAL);
         expenses_sheet_add_item_view.setLayoutManager(linearLayout);
         button_add_expense_item.setOnClickListener(this);
+        expense_detail_sync_button.setOnClickListener(this);
         button_submit_expense_sheet.setOnClickListener(this);
 
-        fetchSheetDetail();
-
         expenseListAdapter.setClickListener(this);
+
+        fetchSheetDetail();
+//        performSyncOperation(false);
 
     }
 
     private void fetchSheetDetail(){
         ExpenseDataSource expenseDataSource = new ExpenseDataSource(this);
         prepopulated_expenses_list = expenseDataSource.getExpenseItems(sheet.getSheet_id());
+
+        /*for(Expense expense: prepopulated_expenses_list){
+            Log.d("Expense Item", expense.toString());
+        }*/
+
         expenseListAdapter.setExpenseList(prepopulated_expenses_list);
         expenseListAdapter.sortList();
         expenseListAdapter.notifyDataSetChanged();
@@ -95,8 +103,15 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
 
     private void updateDbOperation(Expense expense){
         ExpenseDataSource expenseDataSource = new ExpenseDataSource(this);
-        if(expenseDataSource.updateSheetEntry(expense)){
+        long insertId = expenseDataSource.updateExpenseEntry(expense);
+        if(insertId!=-1){
 //            updateExpenseSheet();
+            try {
+                expense.setId(insertId);
+                expenseDataSource.updateExpenseEntryOnServer(expense);
+            }catch (JSONException exp){
+                exp.printStackTrace();
+            }
         }else{
             Log.e("ExpenseDetail", "Error while submitting expense");
         }
@@ -104,9 +119,11 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
 
     private void createNewDbOperation(Expense expense){
         ExpenseDataSource expenseDataSource = new ExpenseDataSource(this);
-        if(expenseDataSource.createExpenseEntry(expense)){
+        long insertId = expenseDataSource.createExpenseEntry(expense);
+        if(insertId !=-1){
 //            updateExpenseSheet();
             try {
+                expense.setId(insertId);
                 expenseDataSource.createExpenseEntryOnServer(expense);
             }catch (JSONException exp){
                 exp.printStackTrace();
@@ -118,6 +135,44 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
 
     private void performSubmitOperation(){
         onBackPressed();
+    }
+
+
+
+    private void curateExpenseList(ArrayList<Expense> expensesList){
+        ExpenseDataSource expenseDataSource = new ExpenseDataSource(this);
+        for(Expense expense: expensesList){
+            Log.d("Server ID", expense.getServer_expense_id()+"");
+            if(containsServerId(prepopulated_expenses_list, expense)){
+                Log.d("Updating", expense.getServer_expense_id()+"");
+                int index = prepopulated_expenses_list.indexOf(expense);
+                Expense temp_expense = prepopulated_expenses_list.get(index);
+                temp_expense.updateExpense(expense);
+                if(expenseDataSource.updateSheetEntryWithServerID(temp_expense)){
+                    Log.d("Update Success", "Successfully updated "+temp_expense.getServer_expense_id());
+                }else{
+                    Log.e("Update Failure", "Failed to update "+temp_expense.getServer_expense_id());
+                }
+
+            }else{
+                Log.d("Adding", expense.getServer_expense_id()+"");
+                prepopulated_expenses_list.add(expense);
+                if(expenseDataSource.createExpenseEntry(expense)!=-1){
+                    Log.d("Add Success", "Successfully added "+expense.getServer_expense_id());
+                }else{
+                    Log.e("Add Failure", "Failed to add "+expense.getServer_expense_id());
+                }
+            }
+        }
+    }
+
+    private boolean containsServerId(ArrayList<Expense> expensesList, Expense expense){
+        for(Expense expense1: expensesList){
+            if(expense1.getServer_expense_id().equalsIgnoreCase(expense.getServer_expense_id())){
+                return true;
+            }
+        }
+        return false;
     }
 
     private void performEditOperation(int position, ExpenseListAdapter.ViewHolder viewHolder){
@@ -138,6 +193,9 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
                 if(removeExpense(expense)){
                     expenseListAdapter.removeItem(position);
                     expenseListAdapter.notifyDataSetChanged();
+
+                    sheet_amount -= expense.getAmount();
+                    total_amount_value.setText(String.valueOf(sheet_amount));
                 }
             }
         });
@@ -169,6 +227,9 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
                 break;
             case R.id.button_submit_expense_sheet:
                 performSubmitOperation();
+                break;
+            case R.id.expense_detail_sync_button:
+//                performSyncOperation(true);
                 break;
         }
     }
@@ -238,7 +299,6 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
         }else{
             Log.e("ExpenseDetail", "Error while submitting Sheet");
         }
-
         setResult(200);
         finish();
 

@@ -45,6 +45,16 @@ public class Sheet implements Parcelable {
 
     private String sheet_name;
     private String sheet_creation_date;
+
+    public String getServer_id() {
+        return server_id;
+    }
+
+    public void setServer_id(String server_id) {
+        this.server_id = server_id;
+    }
+
+    private String server_id;
     private long sheet_id;
     private double amount;
 
@@ -54,13 +64,23 @@ public class Sheet implements Parcelable {
 
     public Sheet(Cursor cursor){
         this.sheet_id = cursor.getLong(cursor.getColumnIndex(ExpenseSheetDataSource.COLUMN_ID));
+        this.server_id = cursor.getString(cursor.getColumnIndex(ExpenseSheetDataSource.COLUMN_ID_SERVER));
         this.sheet_name = cursor.getString(cursor.getColumnIndex(ExpenseSheetDataSource.COLUMN_NAME));
         this.sheet_creation_date = cursor.getString(cursor.getColumnIndex(ExpenseSheetDataSource.COLUMN_DATE));
         this.amount = cursor.getDouble(cursor.getColumnIndex(ExpenseSheetDataSource.COLUMN_AMOUNT));
     }
 
+    public void updateSheet(Sheet sheet){
+        this.sheet_id = sheet.getSheet_id();
+        this.server_id = sheet.getServer_id();
+        this.sheet_name = sheet.getSheet_name();
+        this.sheet_creation_date = sheet.getSheet_creation_date();
+        this.amount = sheet.getAmount();
+    }
+
     protected Sheet(Parcel in) {
         sheet_name = in.readString();
+        server_id = in.readString();
         sheet_creation_date = in.readString();
         sheet_id = in.readLong();
         amount = in.readDouble();
@@ -86,6 +106,7 @@ public class Sheet implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(sheet_name);
+        dest.writeString(server_id);
         dest.writeString(sheet_creation_date);
         dest.writeLong(sheet_id);
         dest.writeDouble(amount);

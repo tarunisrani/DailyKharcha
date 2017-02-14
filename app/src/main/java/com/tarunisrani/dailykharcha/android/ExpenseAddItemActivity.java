@@ -43,7 +43,8 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
 
     private int open_mode = OPEN_MODE_NEW;
 
-    private int expense_id = -1;
+    private long expense_id = -1;
+    private String server_expense_id = "";
 
 
     @Override
@@ -116,6 +117,7 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
         if(expense!=null) {
 
             expense_id = expense.getId();
+            server_expense_id = expense.getServer_expense_id();
 
             expense_add_item_date.setText(expense.getExpense_date());
             expense_add_item_date.setEnabled(false);
@@ -175,6 +177,7 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
             expense.setId(expense_id);
             expense.setExpense_date(date);
             expense.setExpense_detail(detail);
+            expense.setServer_expense_id(server_expense_id);
             try {
                 expense.setAmount(Double.parseDouble(amount));
             } catch(NumberFormatException exp){
