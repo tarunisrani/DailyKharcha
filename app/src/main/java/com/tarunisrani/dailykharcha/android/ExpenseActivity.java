@@ -1,8 +1,11 @@
 package com.tarunisrani.dailykharcha.android;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -16,6 +19,7 @@ import com.tarunisrani.dailykharcha.adapters.ExpenseSheetListAdapter;
 import com.tarunisrani.dailykharcha.dbhelper.ExpenseSheetDataSource;
 import com.tarunisrani.dailykharcha.listeners.ExpenseSheetListClickListener;
 import com.tarunisrani.dailykharcha.model.Sheet;
+import com.tarunisrani.dailykharcha.utils.AppUtils;
 
 import org.json.JSONException;
 
@@ -28,6 +32,34 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     private ExpenseSheetListAdapter sheetListAdapter;
 
     private ArrayList<Sheet> prepopulatedSheetList;
+
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Sheet sheet = intent.getParcelableExtra("SHEET");
+            String action = intent.getStringExtra("ACTION");
+
+            Log.e("Sheet "+action, sheet.toString());
+
+            if(action.equalsIgnoreCase(BackendService.ACTION_ADDED)){
+                if(!checkIfSheetEntryExist(sheet)){
+                    Log.e(action, "Sheet does not exist.");
+                    addSheetInList(sheet);
+                }else{
+                    updateSheetDetailsWithServerID(sheet);
+                }
+
+            }else if(action.equalsIgnoreCase(BackendService.ACTION_MODIFIED)){
+                if(checkIfSheetEntryExist(sheet)){
+                    updateSheetDetailsWithServerID(sheet);
+                }else{
+                    Log.e(action, "Sheet does not exist.");
+                }
+            }
+
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,6 +88,9 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     private void fetchSheetList(){
         ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(this);
         prepopulatedSheetList = expenseSheetDataSource.getSheetList();
+        for(Sheet sheet: prepopulatedSheetList){
+            Log.e("Sheet details", sheet.toString());
+        }
         sheetListAdapter.setSheetList(prepopulatedSheetList);
         sheetListAdapter.notifyDataSetChanged();
     }
@@ -70,6 +105,17 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
         sheet.setSheet_creation_date(String.format("%02d/%02d/%d", day, month, year));
 
+        if(addSheetInList(sheet)!=-1){
+            try{
+                AppUtils.getService().createSheetEntryOnServer(sheet);
+            } catch (JSONException exp){
+                exp.printStackTrace();
+            }
+        }
+
+    }
+
+    private long addSheetInList(Sheet sheet){
         long sheet_id = createNewSheetInDb(sheet);
 
         if(sheet_id != -1){
@@ -77,19 +123,18 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
             sheetListAdapter.addSheet(sheet);
             sheetListAdapter.notifyDataSetChanged();
         }
+
+        return sheet_id;
     }
 
     private long createNewSheetInDb(Sheet sheet){
         ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(this);
-        long result = expenseSheetDataSource.createSheetEntry(sheet);
-        if(result!=-1){
-            try{
-                expenseSheetDataSource.createSheetEntryOnServer(sheet);
-            } catch (JSONException exp){
-                exp.printStackTrace();
-            }
-        }
-        return result;
+        return expenseSheetDataSource.createSheetEntry(sheet);
+    }
+
+    private boolean checkIfSheetEntryExist(Sheet sheet){
+        ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(this);
+        return expenseSheetDataSource.isSheetEntryExist(sheet);
     }
 
     private void openSheetScreen(Sheet sheet){
@@ -98,9 +143,20 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         startActivityForResult(intent, 100);
     }
 
-    private boolean updateSheetName(Sheet sheet){
+    private boolean updateSheetDetails(Sheet sheet){
         ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(this);
         if(expenseSheetDataSource.updateSheetEntry(sheet)){
+            Log.e("Update Sheet", "SUCCESSFUL");
+            return true;
+        }else{
+            Log.e("Update Sheet", "FAILURE");
+            return false;
+        }
+    }
+
+    private boolean updateSheetDetailsWithServerID(Sheet sheet){
+        ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(this);
+        if(expenseSheetDataSource.updateSheetEntryWithServerId(sheet)){
             Log.e("Update Sheet", "SUCCESSFUL");
             return true;
         }else{
@@ -188,9 +244,12 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     public void onOkClick(int index, String string, ExpenseSheetListAdapter.ViewHolder viewHolder) {
         Sheet sheet = sheetListAdapter.getItem(index);
         sheet.setSheet_name(string);
-        if(updateSheetName(sheet)){
+        if(updateSheetDetails(sheet)){
             viewHolder.hideControlPanel();
             viewHolder.setSheetName(string);
+
+            AppUtils.getService().updateSheetEntryOnServer(sheet);
+
         }
     }
 
@@ -255,4 +314,17 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
             fetchSheetList();
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(receiver, new IntentFilter(BackendService.FILTER_SHEET));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(receiver);
+    }
+
 }

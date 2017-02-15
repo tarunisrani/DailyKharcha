@@ -111,4 +111,20 @@ public class Sheet implements Parcelable {
         dest.writeLong(sheet_id);
         dest.writeDouble(amount);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder("");
+        stringBuilder.append(sheet_id);
+        stringBuilder.append("\t");
+        stringBuilder.append(server_id);
+        stringBuilder.append("\t");
+        stringBuilder.append(sheet_name);
+        stringBuilder.append("\t");
+        stringBuilder.append(sheet_creation_date);
+        stringBuilder.append("\t");
+        stringBuilder.append(amount);
+
+        return stringBuilder.toString();
+    }
 }

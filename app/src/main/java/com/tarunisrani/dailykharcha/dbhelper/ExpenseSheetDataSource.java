@@ -3,6 +3,7 @@ package com.tarunisrani.dailykharcha.dbhelper;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
@@ -12,14 +13,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.tarunisrani.dailykharcha.listeners.ServerExpenseDataListener;
-import com.tarunisrani.dailykharcha.model.Expense;
 import com.tarunisrani.dailykharcha.model.Sheet;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import static android.content.ContentValues.TAG;
 
@@ -73,6 +72,19 @@ public class ExpenseSheetDataSource {
         return insertId;
     }
 
+    public boolean isSheetEntryExist(Sheet sheet){
+        SQLiteDatabase database = databaseHelper.getReadableDatabase();
+        Cursor cursor = database.query(TABLE_NAME,
+                allColumns, COLUMN_ID_SERVER + " = " + DatabaseUtils.sqlEscapeString(sheet.getServer_id()), null,
+                null, null, null);
+
+        boolean exist = cursor.getCount()>0;
+
+        database.close();
+        cursor.close();
+        return exist;
+    }
+
     public void createSheetEntryOnServer(final Sheet sheet) throws JSONException{
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference reference = database.getReference(TABLE_NAME);
@@ -84,7 +96,7 @@ public class ExpenseSheetDataSource {
         jsonObject.put(COLUMN_AMOUNT, sheet.getAmount());
 
 
-        reference.addValueEventListener(new ValueEventListener() {
+        /*reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot!=null && dataSnapshot.getValue()!=null) {
@@ -102,7 +114,7 @@ public class ExpenseSheetDataSource {
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        });*/
 
 
         reference.push().setValue(sheet);
@@ -125,10 +137,10 @@ public class ExpenseSheetDataSource {
     }
 
     public void getSheetItemsFromServer(final boolean oneTimeFetch, final ServerExpenseDataListener listener){
-        removeSync();
+//        removeSync();
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference reference = database.getReference(TABLE_NAME);
-        valueEventListener = reference.child("sheets").addValueEventListener(new ValueEventListener() {
+        /*valueEventListener = reference.child("sheets").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ArrayList<Expense> expenseArrayList = new ArrayList<>();
@@ -153,7 +165,7 @@ public class ExpenseSheetDataSource {
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        });*/
     }
 
     private void removeSync(){
@@ -211,12 +223,28 @@ public class ExpenseSheetDataSource {
     public boolean updateSheetEntry(Sheet sheet){
         SQLiteDatabase database = databaseHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
+        values.put(COLUMN_ID_SERVER, sheet.getServer_id());
         values.put(COLUMN_DATE, sheet.getSheet_creation_date());
         values.put(COLUMN_NAME, sheet.getSheet_name());
         values.put(COLUMN_AMOUNT, sheet.getAmount());
 
         long count = database.update(TABLE_NAME,
-                values, COLUMN_ID + " = ?", new String[]{String.valueOf(sheet.getSheet_id())});
+                values, COLUMN_ID + " = " + sheet.getSheet_id(), null);
+        database.close();
+
+        return count == 1;
+    }
+
+    public boolean updateSheetEntryWithServerId(Sheet sheet){
+        SQLiteDatabase database = databaseHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_ID_SERVER, sheet.getServer_id());
+        values.put(COLUMN_DATE, sheet.getSheet_creation_date());
+        values.put(COLUMN_NAME, sheet.getSheet_name());
+        values.put(COLUMN_AMOUNT, sheet.getAmount());
+
+        long count = database.update(TABLE_NAME,
+                values, COLUMN_ID_SERVER + " = " + DatabaseUtils.sqlEscapeString(sheet.getServer_id()), null);
         database.close();
 
         return count == 1;

@@ -20,8 +20,6 @@ import com.tarunisrani.dailykharcha.listeners.ExpenseListClickListener;
 import com.tarunisrani.dailykharcha.model.Expense;
 import com.tarunisrani.dailykharcha.model.Sheet;
 
-import org.json.JSONException;
-
 import java.util.ArrayList;
 
 public class ExpenseDetailActivity extends AppCompatActivity implements View.OnClickListener, ExpenseListClickListener {
@@ -106,12 +104,12 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
         long insertId = expenseDataSource.updateExpenseEntry(expense);
         if(insertId!=-1){
 //            updateExpenseSheet();
-            try {
+            /*try {
                 expense.setId(insertId);
                 expenseDataSource.updateExpenseEntryOnServer(expense);
             }catch (JSONException exp){
                 exp.printStackTrace();
-            }
+            }*/
         }else{
             Log.e("ExpenseDetail", "Error while submitting expense");
         }
@@ -122,12 +120,12 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
         long insertId = expenseDataSource.createExpenseEntry(expense);
         if(insertId !=-1){
 //            updateExpenseSheet();
-            try {
+            /*try {
                 expense.setId(insertId);
                 expenseDataSource.createExpenseEntryOnServer(expense);
             }catch (JSONException exp){
                 exp.printStackTrace();
-            }
+            }*/
         }else{
             Log.e("ExpenseDetail", "Error while submitting expense");
         }

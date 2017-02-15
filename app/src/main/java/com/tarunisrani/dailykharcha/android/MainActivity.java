@@ -1,5 +1,6 @@
 package com.tarunisrani.dailykharcha.android;
 
+import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -18,6 +19,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.tarunisrani.dailykharcha.R;
+import com.tarunisrani.dailykharcha.utils.AppUtils;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -66,17 +68,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
-        Intent intent= new Intent(this, BackendService.class);
-        bindService(intent, mConnection,
-                Context.BIND_AUTO_CREATE);
+        if(AppUtils.getService()==null) {
+            Intent intent = new Intent(this, BackendService.class);
+            bindService(intent, mConnection,
+                    Context.BIND_AUTO_CREATE);
+        }
 //        startService(intent);
-
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        unbindService(mConnection);
+        if(AppUtils.getService()!=null && isServiceRunning(AppUtils.getService().getClass())) {
+            unbindService(mConnection);
+        }
     }
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -85,6 +90,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                        IBinder binder) {
             BackendService.MyBinder b = (BackendService.MyBinder) binder;
             backendService = b.getService();
+            AppUtils.setService(backendService);
             backendService.startService(b.getmIntent());
             Toast.makeText(MainActivity.this, "Connected", Toast.LENGTH_SHORT)
                     .show();
@@ -92,10 +98,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         public void onServiceDisconnected(ComponentName className) {
             backendService = null;
+            AppUtils.setService(backendService);
             Toast.makeText(MainActivity.this, "onServiceDisconnected", Toast.LENGTH_SHORT)
                     .show();
         }
     };
+
+
+    private boolean isServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private void openToDoScreen(){
 //        startActivity(new Intent(this, TodoActivity.class));

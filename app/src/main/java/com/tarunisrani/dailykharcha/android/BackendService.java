@@ -15,6 +15,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.tarunisrani.dailykharcha.dbhelper.ExpenseDataSource;
+import com.tarunisrani.dailykharcha.dbhelper.ExpenseSheetDataSource;
 import com.tarunisrani.dailykharcha.model.Expense;
 import com.tarunisrani.dailykharcha.model.Sheet;
 
@@ -27,6 +28,11 @@ import java.util.ArrayList;
  */
 
 public class BackendService extends Service {
+
+    public static final String FILTER_EXPENSE = "com.tarunisrani.dailykharcha.android.backendservice.expense";
+    public static final String FILTER_SHEET = "com.tarunisrani.dailykharcha.android.backendservice.sheet";
+    public static final String ACTION_ADDED = "ACTION_ADDED";
+    public static final String ACTION_MODIFIED = "ACTION_MODIFIED";
 
     private final MyBinder mBinder = new MyBinder();
 
@@ -58,8 +64,6 @@ public class BackendService extends Service {
         }
 
         private Intent mIntent;
-
-
 
         BackendService getService() {
             return BackendService.this;
@@ -154,6 +158,9 @@ public class BackendService extends Service {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 if (dataSnapshot!=null && dataSnapshot.getValue()!=null) {
                     Log.e("Sheet onChildAdded", dataSnapshot.getValue().toString());
+                    Sheet sheet = dataSnapshot.getValue(Sheet.class);
+                    sheet.setServer_id(dataSnapshot.getKey());
+                    publishSheetResults(sheet, ACTION_ADDED);
                 }else{
                     Log.e("Sheet onChildAdded", "null");
                 }
@@ -163,6 +170,9 @@ public class BackendService extends Service {
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 if (dataSnapshot!=null && dataSnapshot.getValue()!=null) {
                     Log.e("Sheet onChildChanged", dataSnapshot.getValue().toString());
+                    Sheet sheet = dataSnapshot.getValue(Sheet.class);
+                    sheet.setServer_id(dataSnapshot.getKey());
+                    publishSheetResults(sheet, ACTION_MODIFIED);
                 }else{
                     Log.e("Sheet onChildChanged", "null");
                 }
@@ -199,19 +209,18 @@ public class BackendService extends Service {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference reference = database.getReference("expense").push();
 
-        final ExpenseDataSource expenseDataSource = new ExpenseDataSource(this);
-
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot!=null && dataSnapshot.getValue()!=null) {
+                    ExpenseDataSource expenseDataSource = new ExpenseDataSource(BackendService.this);
                     Log.e("Expense", dataSnapshot.getKey() + "  --  " + dataSnapshot.getValue().toString());
-                    /*expense.setServer_expense_id(dataSnapshot.getKey());
+                    expense.setServer_expense_id(dataSnapshot.getKey());
                     if (expenseDataSource.updateExpenseEntry(expense)!=-1) {
                         Log.d("Update", "Successfully updated server expense id");
                     } else {
                         Log.d("Update", "Failed to update server expense id");
-                    }*/
+                    }
                 }
             }
 
@@ -229,6 +238,53 @@ public class BackendService extends Service {
         reference.setValue(expense);
     }
 
+    public void createSheetEntryOnServer(final Sheet sheet) throws JSONException{
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference reference = database.getReference("sheet");
+
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(dataSnapshot!=null && dataSnapshot.getValue()!=null) {
+                    ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(BackendService.this);
+                    Log.e("Expense", dataSnapshot.getKey() + "  --  " + dataSnapshot.getValue().toString());
+                    sheet.setServer_id(dataSnapshot.getKey());
+                    if (expenseSheetDataSource.updateSheetEntry(sheet)) {
+                        Log.d("Update", "Successfully updated server sheet id");
+                    } else {
+                        Log.d("Update", "Failed to update server sheet id");
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        reference.push().setValue(sheet);
+    }
+
+    public void updateSheetEntryOnServer(Sheet sheet){
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference reference = database.getReference("sheet").child(sheet.getServer_id());
+        reference.setValue(sheet);
+    }
+
+    private void publishSheetResults(Sheet sheet, String action) {
+        Intent intent = new Intent(FILTER_SHEET);
+        intent.putExtra("SHEET", sheet);
+        intent.putExtra("ACTION", action);
+        sendBroadcast(intent);
+    }
+
+    private void publishExpenseResults(Expense expense, String action) {
+        Intent intent = new Intent(FILTER_EXPENSE);
+        intent.putExtra("EXPENSE", expense);
+        intent.putExtra("ACTION", action);
+        sendBroadcast(intent);
+    }
 
 
 }
