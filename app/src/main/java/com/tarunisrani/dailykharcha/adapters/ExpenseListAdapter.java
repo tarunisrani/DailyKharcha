@@ -195,11 +195,11 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
                 if(code == 0 && o1.getServer_expense_id()!=null && o2.getServer_expense_id()!=null){
                     code = o1.getServer_expense_id().compareToIgnoreCase(o2.getServer_expense_id());
                     if(code == 0){
-                        code = o1.getId() - o2.getId();
+                        code = o1.getId().compareToIgnoreCase(o2.getId());
 
                     }
                 }else{
-                    code = o1.getId() - o2.getId();
+                    code = o1.getId().compareToIgnoreCase(o2.getId());
                 }
             } catch (ParseException exp){
                 exp.printStackTrace();

@@ -40,6 +40,9 @@ public class ReminderDataSource {
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + TABLE_NAME;
 
+    private static final String SQL_CLEAN_TABLE =
+            "DELETE FROM " + TABLE_NAME;
+
     private String[] allColumns = {COLUMN_ID, COLUMN_HEADING, COLUMN_DESCRIPTION,
             COLUMN_DATE_CREATION, COLUMN_DATE_COMPLETION, COLUMN_FREQUENCY, COLUMN_PRIORITY};
 
@@ -47,7 +50,15 @@ public class ReminderDataSource {
 
     public ReminderDataSource(Context context) {
         databaseHelper = DatabaseHelper.getmInstance(context);
-        databaseHelper.createTable(DATABASE_CREATE);
+        databaseHelper.executeQuery(DATABASE_CREATE);
+    }
+
+    public void dropTable(){
+        databaseHelper.executeQuery(SQL_DELETE_ENTRIES);
+    }
+
+    public void cleanTable(){
+        databaseHelper.executeQuery(SQL_CLEAN_TABLE);
     }
 
     public int createReminderEntry(Reminder reminder){

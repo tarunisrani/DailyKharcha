@@ -19,11 +19,11 @@ public class Sheet implements Parcelable {
         this.sheet_name = sheet_name;
     }
 
-    public long getSheet_id() {
+    public String getSheet_id() {
         return sheet_id;
     }
 
-    public void setSheet_id(long sheet_id) {
+    public void setSheet_id(String sheet_id) {
         this.sheet_id = sheet_id;
     }
 
@@ -54,8 +54,17 @@ public class Sheet implements Parcelable {
         this.server_id = server_id;
     }
 
+    public String getGroup_id() {
+        return group_id;
+    }
+
+    public void setGroup_id(String group_id) {
+        this.group_id = group_id;
+    }
+
     private String server_id;
-    private long sheet_id;
+    private String sheet_id;
+    private String group_id;
     private double amount;
 
     public Sheet(){
@@ -63,8 +72,9 @@ public class Sheet implements Parcelable {
     }
 
     public Sheet(Cursor cursor){
-        this.sheet_id = cursor.getLong(cursor.getColumnIndex(ExpenseSheetDataSource.COLUMN_ID));
+        this.sheet_id = cursor.getString(cursor.getColumnIndex(ExpenseSheetDataSource.COLUMN_ID));
         this.server_id = cursor.getString(cursor.getColumnIndex(ExpenseSheetDataSource.COLUMN_ID_SERVER));
+        this.group_id = cursor.getString(cursor.getColumnIndex(ExpenseSheetDataSource.COLUMN_GROUP));
         this.sheet_name = cursor.getString(cursor.getColumnIndex(ExpenseSheetDataSource.COLUMN_NAME));
         this.sheet_creation_date = cursor.getString(cursor.getColumnIndex(ExpenseSheetDataSource.COLUMN_DATE));
         this.amount = cursor.getDouble(cursor.getColumnIndex(ExpenseSheetDataSource.COLUMN_AMOUNT));
@@ -73,6 +83,7 @@ public class Sheet implements Parcelable {
     public void updateSheet(Sheet sheet){
         this.sheet_id = sheet.getSheet_id();
         this.server_id = sheet.getServer_id();
+        this.group_id = sheet.getGroup_id();
         this.sheet_name = sheet.getSheet_name();
         this.sheet_creation_date = sheet.getSheet_creation_date();
         this.amount = sheet.getAmount();
@@ -81,8 +92,9 @@ public class Sheet implements Parcelable {
     protected Sheet(Parcel in) {
         sheet_name = in.readString();
         server_id = in.readString();
+        group_id = in.readString();
         sheet_creation_date = in.readString();
-        sheet_id = in.readLong();
+        sheet_id = in.readString();
         amount = in.readDouble();
     }
 
@@ -107,8 +119,9 @@ public class Sheet implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(sheet_name);
         dest.writeString(server_id);
+        dest.writeString(group_id);
         dest.writeString(sheet_creation_date);
-        dest.writeLong(sheet_id);
+        dest.writeString(sheet_id);
         dest.writeDouble(amount);
     }
 
@@ -118,6 +131,8 @@ public class Sheet implements Parcelable {
         stringBuilder.append(sheet_id);
         stringBuilder.append("\t");
         stringBuilder.append(server_id);
+        stringBuilder.append("\t");
+        stringBuilder.append(group_id);
         stringBuilder.append("\t");
         stringBuilder.append(sheet_name);
         stringBuilder.append("\t");

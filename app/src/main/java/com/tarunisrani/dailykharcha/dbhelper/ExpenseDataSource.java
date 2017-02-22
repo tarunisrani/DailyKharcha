@@ -8,8 +8,6 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
@@ -17,7 +15,6 @@ import com.tarunisrani.dailykharcha.listeners.ServerExpenseDataListener;
 import com.tarunisrani.dailykharcha.model.Expense;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 /**
  * Created by tarunisrani on 12/21/16.
@@ -40,9 +37,9 @@ public class ExpenseDataSource {
 
     // Database creation sql statement
     private static final String DATABASE_CREATE = "create table if not exists " + TABLE_NAME + "( "
-            + COLUMN_ID + " integer primary key autoincrement, "
+            + COLUMN_ID + " text primary key, "
             + COLUMN_ID_SERVER + " text, "
-            + COLUMN_SHEET_ID + " integer, "
+            + COLUMN_SHEET_ID + " text, "
             + COLUMN_DATE + " text, "
             + COLUMN_DETAIL + " text, "
             + COLUMN_GROUP + " text, "
@@ -54,6 +51,9 @@ public class ExpenseDataSource {
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + TABLE_NAME;
 
+    private static final String SQL_CLEAN_TABLE =
+            "DELETE FROM " + TABLE_NAME;
+
     private String[] allColumns = {COLUMN_ID, COLUMN_ID_SERVER, COLUMN_SHEET_ID, COLUMN_DATE, COLUMN_DETAIL, COLUMN_GROUP, COLUMN_AMOUNT,
             COLUMN_EXPENSE_TYPE, COLUMN_PAYMENT_TYPE};
 
@@ -63,12 +63,21 @@ public class ExpenseDataSource {
 
     public ExpenseDataSource(Context context) {
         databaseHelper = DatabaseHelper.getmInstance(context);
-        databaseHelper.createTable(DATABASE_CREATE);
+        databaseHelper.executeQuery(DATABASE_CREATE);
     }
 
-    public long createExpenseEntry(Expense expense){
+    public void dropTable(){
+        databaseHelper.executeQuery(SQL_DELETE_ENTRIES);
+    }
+
+    public void cleanTable(){
+        databaseHelper.executeQuery(SQL_CLEAN_TABLE);
+    }
+
+    public boolean createExpenseEntry(Expense expense){
         SQLiteDatabase database = databaseHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
+        values.put(COLUMN_ID, expense.getId());
         values.put(COLUMN_SHEET_ID, expense.getSheet_id());
         values.put(COLUMN_ID_SERVER, expense.getServer_expense_id());
         values.put(COLUMN_DATE, expense.getExpense_date());
@@ -81,7 +90,7 @@ public class ExpenseDataSource {
         long insertId = database.insert(TABLE_NAME, null,
                 values);
         database.close();
-        return insertId ;
+        return insertId != -1 ;
     }
 
 
@@ -106,11 +115,12 @@ public class ExpenseDataSource {
         return count;
     }
 
-    public long updateExpenseEntry(Expense expense){
+    public boolean updateExpenseEntry(Expense expense){
         Log.i("Updating database", expense.toString());
 
         SQLiteDatabase database = databaseHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
+        values.put(COLUMN_ID, expense.getId());
         values.put(COLUMN_SHEET_ID, expense.getSheet_id());
         values.put(COLUMN_ID_SERVER, expense.getServer_expense_id());
         values.put(COLUMN_DATE, expense.getExpense_date());
@@ -121,10 +131,10 @@ public class ExpenseDataSource {
         values.put(COLUMN_PAYMENT_TYPE, expense.getPayment_type());
 
         long count = database.update(TABLE_NAME,
-                values, COLUMN_ID + " = "+String.valueOf(expense.getId()), null);
+                values, COLUMN_ID + " = " + DatabaseUtils.sqlEscapeString(expense.getId()), null);
         database.close();
 
-        return (count > 0)?expense.getId():-1;
+        return (count > 0);
     }
 
     public boolean updateSheetEntryWithServerID(Expense expense){
@@ -133,8 +143,9 @@ public class ExpenseDataSource {
 
         SQLiteDatabase database = databaseHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
+        values.put(COLUMN_ID, expense.getId());
         values.put(COLUMN_SHEET_ID, expense.getSheet_id());
-//        values.put(COLUMN_ID_SERVER, expense.getServer_expense_id());
+//        values.put(COLUMN_NAME, expense.getServer_expense_id());
         values.put(COLUMN_DATE, expense.getExpense_date());
         values.put(COLUMN_DETAIL, expense.getExpense_detail());
         values.put(COLUMN_GROUP, expense.getExpense_group());
@@ -154,11 +165,11 @@ public class ExpenseDataSource {
         return count > 0;
     }
 
-    public ArrayList<Expense> getExpenseItems(long sheet_id){
+    public ArrayList<Expense> getExpenseItems(String sheet_id){
         ArrayList<Expense> expenseArrayList = new ArrayList<>();
         SQLiteDatabase database = databaseHelper.getReadableDatabase();
         Cursor cursor = database.query(TABLE_NAME,
-                allColumns, COLUMN_SHEET_ID + " = " + sheet_id, null,
+                allColumns, COLUMN_SHEET_ID + " = " + DatabaseUtils.sqlEscapeString(sheet_id), null,
                 null, null, null);
         cursor.moveToFirst();
         while(!cursor.isAfterLast()){
@@ -174,7 +185,7 @@ public class ExpenseDataSource {
         removeSync(sheet_id);
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference reference = database.getReference(TABLE_NAME);
-        valueEventListener = reference.child(sheet_id+"").addValueEventListener(new ValueEventListener() {
+        /*valueEventListener = reference.child(sheet_id+"").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 ArrayList<Expense> expenseArrayList = new ArrayList<>();
@@ -199,7 +210,7 @@ public class ExpenseDataSource {
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        });*/
     }
 
     private void removeSync(long sheet_id){
@@ -227,9 +238,9 @@ public class ExpenseDataSource {
         return expenseArrayList;
     }
 
-    public long getTotalCost(long sheet_id){
+    public long getTotalCost(String sheet_id){
         long amount = 0;
-        String query = "SELECT SUM("+COLUMN_AMOUNT+") FROM "+TABLE_NAME + " WHERE " + COLUMN_SHEET_ID + " = " + sheet_id;
+        String query = "SELECT SUM("+COLUMN_AMOUNT+") FROM "+TABLE_NAME + " WHERE " + COLUMN_SHEET_ID + " = '" + sheet_id +"'";
         SQLiteDatabase database = databaseHelper.getReadableDatabase();
         Cursor cursor = database.rawQuery(query, null);
         cursor.moveToFirst();
@@ -247,5 +258,18 @@ public class ExpenseDataSource {
         database.close();
 
         return count > 0;
+    }
+
+    public boolean isExpenseEntryExist(Expense expense){
+        SQLiteDatabase database = databaseHelper.getReadableDatabase();
+        Cursor cursor = database.query(TABLE_NAME,
+                allColumns, COLUMN_ID + " = " + DatabaseUtils.sqlEscapeString(expense.getId()), null,
+                null, null, null);
+
+        boolean exist = cursor.getCount()>0;
+
+        database.close();
+        cursor.close();
+        return exist;
     }
 }

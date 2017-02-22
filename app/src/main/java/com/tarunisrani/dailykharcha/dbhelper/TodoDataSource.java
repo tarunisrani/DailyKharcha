@@ -42,6 +42,9 @@ public class TodoDataSource {
     private static final String SQL_DELETE_ENTRIES =
             "DROP TABLE IF EXISTS " + TABLE_NAME;
 
+    private static final String SQL_CLEAN_TABLE =
+            "DELETE FROM " + TABLE_NAME;
+
     private String[] allColumns = {COLUMN_ID, COLUMN_HEADING, COLUMN_DATE_CREATION, COLUMN_DATE_COMPLETE,
             COLUMN_DISCRIPTION, COLUMN_GROUP, COLUMN_COMPLETED, COLUMN_PRIORITY};
 
@@ -49,7 +52,15 @@ public class TodoDataSource {
 
     public TodoDataSource(Context context) {
         databaseHelper = DatabaseHelper.getmInstance(context);
-        databaseHelper.createTable(DATABASE_CREATE);
+        databaseHelper.executeQuery(DATABASE_CREATE);
+    }
+
+    public void dropTable(){
+        databaseHelper.executeQuery(SQL_DELETE_ENTRIES);
+    }
+
+    public void cleanTable(){
+        databaseHelper.executeQuery(SQL_CLEAN_TABLE);
     }
 
     public int createTodoEntry(Todo todo) {

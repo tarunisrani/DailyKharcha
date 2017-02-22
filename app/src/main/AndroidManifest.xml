@@ -28,9 +28,10 @@
             android:label="Expense Details"/>
         <activity android:name=".android.AnalyseSheetActivity"
             android:label="Analysis"/>
-        <activity android:name=".android.BluetoothChat">
-        </activity>
-        <activity android:name=".android.DeviceListActivity"/>
+        <activity android:name=".android.LoginActivity"
+            android:label="Login"/>
+        <activity android:name=".android.SignUpActivity"
+            android:label="Signup"/>
 
         <service
             android:name=".android.BackendService"

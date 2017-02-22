@@ -1,8 +1,11 @@
 package com.tarunisrani.dailykharcha.android;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,6 +22,7 @@ import com.tarunisrani.dailykharcha.dbhelper.ExpenseSheetDataSource;
 import com.tarunisrani.dailykharcha.listeners.ExpenseListClickListener;
 import com.tarunisrani.dailykharcha.model.Expense;
 import com.tarunisrani.dailykharcha.model.Sheet;
+import com.tarunisrani.dailykharcha.utils.AppUtils;
 
 import java.util.ArrayList;
 
@@ -32,6 +36,25 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
 
     private ArrayList<Expense> prepopulated_expenses_list;
     private ArrayList<Expense> new_added_expenses_list = new ArrayList<>();
+
+
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Expense expense = intent.getParcelableExtra("EXPENSE");
+            String action = intent.getStringExtra("ACTION");
+
+            Log.e("Expense "+action, expense.toString());
+
+            if(action.equalsIgnoreCase(BackendService.ACTION_ADDED)){
+                fetchSheetDetail();
+            }else if(action.equalsIgnoreCase(BackendService.ACTION_MODIFIED)){
+                fetchSheetDetail();
+            }
+
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,8 +124,7 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
 
     private void updateDbOperation(Expense expense){
         ExpenseDataSource expenseDataSource = new ExpenseDataSource(this);
-        long insertId = expenseDataSource.updateExpenseEntry(expense);
-        if(insertId!=-1){
+        if(expenseDataSource.updateExpenseEntry(expense)){
 //            updateExpenseSheet();
             /*try {
                 expense.setId(insertId);
@@ -117,8 +139,8 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
 
     private void createNewDbOperation(Expense expense){
         ExpenseDataSource expenseDataSource = new ExpenseDataSource(this);
-        long insertId = expenseDataSource.createExpenseEntry(expense);
-        if(insertId !=-1){
+
+        if(expenseDataSource.createExpenseEntry(expense)){
 //            updateExpenseSheet();
             /*try {
                 expense.setId(insertId);
@@ -126,6 +148,9 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
             }catch (JSONException exp){
                 exp.printStackTrace();
             }*/
+
+            AppUtils.getService().createExpenseEntryOnServer(expense);
+
         }else{
             Log.e("ExpenseDetail", "Error while submitting expense");
         }
@@ -155,7 +180,7 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
             }else{
                 Log.d("Adding", expense.getServer_expense_id()+"");
                 prepopulated_expenses_list.add(expense);
-                if(expenseDataSource.createExpenseEntry(expense)!=-1){
+                if(expenseDataSource.createExpenseEntry(expense)){
                     Log.d("Add Success", "Successfully added "+expense.getServer_expense_id());
                 }else{
                     Log.e("Add Failure", "Failed to add "+expense.getServer_expense_id());
@@ -239,11 +264,12 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
             Expense expense = data.getParcelableExtra("EXPENSE");
             expense.setSheet_id(sheet.getSheet_id());
             Log.e("expense.getId(): ", "" + expense.getId());
-            if(expense.getId()!=-1){
+            if(expense.getId()!=null){
                 updateDbOperation(expense);
                 double amount = expenseListAdapter.updateExpense(expense);
                 sheet_amount -= amount;
             }else{
+                expense.setId(AppUtils.generateUniqueKey(this));
                 createNewDbOperation(expense);
                 new_added_expenses_list.add(expense);
                 expenseListAdapter.addExpense(expense);
@@ -300,5 +326,17 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
         setResult(200);
         finish();
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(receiver, new IntentFilter(BackendService.FILTER_EXPENSE));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(receiver);
     }
 }

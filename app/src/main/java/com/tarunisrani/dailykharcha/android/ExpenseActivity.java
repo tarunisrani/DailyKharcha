@@ -12,19 +12,32 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
 
 import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.adapters.ExpenseSheetListAdapter;
 import com.tarunisrani.dailykharcha.dbhelper.ExpenseSheetDataSource;
+import com.tarunisrani.dailykharcha.dbhelper.GroupDataSource;
 import com.tarunisrani.dailykharcha.listeners.ExpenseSheetListClickListener;
+import com.tarunisrani.dailykharcha.listeners.SelectedUserListListener;
+import com.tarunisrani.dailykharcha.listeners.UserListGenerationListener;
+import com.tarunisrani.dailykharcha.model.Group;
 import com.tarunisrani.dailykharcha.model.Sheet;
+import com.tarunisrani.dailykharcha.model.UserDetails;
 import com.tarunisrani.dailykharcha.utils.AppUtils;
+import com.tarunisrani.dailykharcha.utils.SharedPreferrenceUtil;
 
 import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+
+import static com.tarunisrani.dailykharcha.R.id.button_logout;
+import static com.tarunisrani.dailykharcha.utils.AppUtils.getService;
 
 public class ExpenseActivity extends AppCompatActivity implements View.OnClickListener, ExpenseSheetListClickListener {
 
@@ -32,6 +45,10 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     private ExpenseSheetListAdapter sheetListAdapter;
 
     private ArrayList<Sheet> prepopulatedSheetList;
+
+    private String selectedGroupid;
+    private Spinner group_list_spinner;
+    private ProgressBar user_list_progressbar;
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -42,19 +59,9 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
             Log.e("Sheet "+action, sheet.toString());
 
             if(action.equalsIgnoreCase(BackendService.ACTION_ADDED)){
-                if(!checkIfSheetEntryExist(sheet)){
-                    Log.e(action, "Sheet does not exist.");
-                    addSheetInList(sheet);
-                }else{
-                    updateSheetDetailsWithServerID(sheet);
-                }
-
+                fetchSheetList();
             }else if(action.equalsIgnoreCase(BackendService.ACTION_MODIFIED)){
-                if(checkIfSheetEntryExist(sheet)){
-                    updateSheetDetailsWithServerID(sheet);
-                }else{
-                    Log.e(action, "Sheet does not exist.");
-                }
+                fetchSheetList();
             }
 
         }
@@ -66,10 +73,19 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.expense_layout);
 
+        selectedGroupid = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
+
         sheetListAdapter = new ExpenseSheetListAdapter(this);
 
         ImageView button_add_new_expense_sheet = (ImageView) findViewById(R.id.button_add_new_expense_sheet);
-        ImageView button_sync_all_expense_sheet = (ImageView) findViewById(R.id.button_sync_all_expense_sheet);
+        ImageView button_share_all_expense_sheet = (ImageView) findViewById(R.id.button_share_all_expense_sheet);
+        Button button_logout = (Button) findViewById(R.id.button_logout);
+
+        group_list_spinner = (Spinner) findViewById(R.id.group_list_spinner);
+
+        prepareListOfGroups();
+
+        user_list_progressbar = (ProgressBar) findViewById(R.id.user_list_progressbar);
         expenses_sheet_list_view = (RecyclerView) findViewById(R.id.expenses_sheet_list_view);
 
         expenses_sheet_list_view.setAdapter(sheetListAdapter);
@@ -80,14 +96,26 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         linearLayout.setOrientation(LinearLayoutManager.VERTICAL);
         expenses_sheet_list_view.setLayoutManager(linearLayout);
         button_add_new_expense_sheet.setOnClickListener(this);
-        button_sync_all_expense_sheet.setOnClickListener(this);
+        button_share_all_expense_sheet.setOnClickListener(this);
+        button_logout.setOnClickListener(this);
 
         fetchSheetList();
     }
 
+    private void prepareListOfGroups(){
+        ArrayAdapter<String> group_list_adapter = new ArrayAdapter<>(this,     android.R.layout.simple_list_item_1, android.R.id.text1);
+        group_list_spinner.setAdapter(group_list_adapter);
+        GroupDataSource groupDataSource = new GroupDataSource(this);
+        ArrayList<Group> groups = groupDataSource.getGroupItems();
+        for(Group group : groups){
+            group_list_adapter.add(group.getGroup_id());
+        }
+    }
+
+
     private void fetchSheetList(){
         ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(this);
-        prepopulatedSheetList = expenseSheetDataSource.getSheetList();
+        prepopulatedSheetList = expenseSheetDataSource.getSheetList(selectedGroupid);
         for(Sheet sheet: prepopulatedSheetList){
             Log.e("Sheet details", sheet.toString());
         }
@@ -97,7 +125,9 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
     private void addNewSheetInList(){
         Sheet sheet = new Sheet();
+        sheet.setSheet_id(AppUtils.generateUniqueKey(this));
         sheet.setSheet_name("Sheet - " + (sheetListAdapter.getItemCount() + 1));
+        sheet.setGroup_id(selectedGroupid);
         Calendar calendar = Calendar.getInstance();
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH) + 1;
@@ -105,9 +135,9 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
         sheet.setSheet_creation_date(String.format("%02d/%02d/%d", day, month, year));
 
-        if(addSheetInList(sheet)!=-1){
+        if(addSheetInList(sheet)){
             try{
-                AppUtils.getService().createSheetEntryOnServer(sheet);
+                getService().createSheetEntryOnServer(sheet);
             } catch (JSONException exp){
                 exp.printStackTrace();
             }
@@ -115,11 +145,11 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
     }
 
-    private long addSheetInList(Sheet sheet){
-        long sheet_id = createNewSheetInDb(sheet);
+    private boolean addSheetInList(Sheet sheet){
+        boolean sheet_id = createNewSheetInDb(sheet);
 
-        if(sheet_id != -1){
-            sheet.setSheet_id(sheet_id);
+        if(sheet_id){
+//            sheet.setSheet_id(sheet_id);
             sheetListAdapter.addSheet(sheet);
             sheetListAdapter.notifyDataSetChanged();
         }
@@ -127,7 +157,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         return sheet_id;
     }
 
-    private long createNewSheetInDb(Sheet sheet){
+    private boolean createNewSheetInDb(Sheet sheet){
         ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(this);
         return expenseSheetDataSource.createSheetEntry(sheet);
     }
@@ -205,15 +235,43 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
             }
         });
         alert.show();
-
     }
 
     private void performShareOperation(int position){
 
     }
 
-    private void performSyncOperation(){
+    private void performShareOperation(){
 
+        user_list_progressbar.setVisibility(View.VISIBLE);
+
+        AppUtils.getService().getUserList(new UserListGenerationListener() {
+            @Override
+            public void onListGenerated(ArrayList<UserDetails> userDetailses) {
+                showUserListDialog(userDetailses);
+            }
+        });
+
+
+    }
+
+    private void showUserListDialog(ArrayList<UserDetails> userDetailsArrayList){
+        user_list_progressbar.setVisibility(View.GONE);
+        UserListDialog dialog = new UserListDialog(this, new SelectedUserListListener() {
+            @Override
+            public void onSharedUserListGenerated(ArrayList<UserDetails> userDetailses) {
+                performServerEntryForSharedUser(userDetailses);
+            }
+        });
+        dialog.setTitle("Choose user");
+        dialog.show();
+        dialog.showUserList(userDetailsArrayList);
+    }
+
+    private void performServerEntryForSharedUser(ArrayList<UserDetails> userDetailses){
+        GroupDataSource groupDataSource = new GroupDataSource(this);
+        Group group = groupDataSource.getGroup(selectedGroupid);
+        AppUtils.getService().createSharedGroupEntryOnServer(userDetailses, group);
     }
 
     private void performAnalysisOperation(int position){
@@ -229,8 +287,11 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.button_add_new_expense_sheet:
                 addNewSheetInList();
                 break;
-            case R.id.button_sync_all_expense_sheet:
-                performSyncOperation();
+            case R.id.button_share_all_expense_sheet:
+                performShareOperation();
+                break;
+            case button_logout:
+                AppUtils.getService().performSignOut();
                 break;
         }
     }
@@ -248,7 +309,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
             viewHolder.hideControlPanel();
             viewHolder.setSheetName(string);
 
-            AppUtils.getService().updateSheetEntryOnServer(sheet);
+            getService().updateSheetEntryOnServer(sheet);
 
         }
     }

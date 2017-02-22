@@ -43,7 +43,7 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
 
     private int open_mode = OPEN_MODE_NEW;
 
-    private long expense_id = -1;
+    private String expense_id = null;
     private String server_expense_id = "";
 
 

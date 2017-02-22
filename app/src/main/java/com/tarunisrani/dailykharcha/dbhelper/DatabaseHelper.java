@@ -33,7 +33,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     }
 
-    public void createTable(String sql_query){
+    public void executeQuery(String sql_query){
         SQLiteDatabase database = getWritableDatabase();
         database.execSQL(sql_query);
         database.close();

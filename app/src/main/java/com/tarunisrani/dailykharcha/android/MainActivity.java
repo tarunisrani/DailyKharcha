@@ -13,11 +13,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.utils.AppUtils;
 
@@ -27,7 +24,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private BackendService backendService;
 
-    private DatabaseReference myRef;
+//    private DatabaseReference myRef;
+//    private FirebaseAuth mAuth;
+
+    private FirebaseAuth firebaseAuth;
+    private FirebaseUser user;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,13 +39,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button button_todo = (Button) findViewById(R.id.button_todo);
         Button button_reminder = (Button) findViewById(R.id.button_reminder);
         Button button_daily_expense = (Button) findViewById(R.id.button_daily_expense);
+        Button button_logout = (Button) findViewById(R.id.button_logout);
 
         button_todo.setOnClickListener(this);
         button_reminder.setOnClickListener(this);
         button_daily_expense.setOnClickListener(this);
+        button_logout.setOnClickListener(this);
 
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
+
+        /*FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference("message");
 
         myRef.addValueEventListener(new ValueEventListener() {
@@ -61,28 +66,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 // Failed to read value
                 Log.w(TAG, "Failed to read value.", error.toException());
             }
-        });
+        });*/
+    }
+
+    private void checkUserStatus(){
+
+        if(user!=null){
+            Log.e("User", "Logged in "+user.getUid());
+            performLoggedInOperation();
+        }else{
+            Log.e("User", "Logged out");
+            openLoginScreen();
+        }
 
     }
+
+    private void performLogOutOperation(){
+        firebaseAuth.signOut();
+    }
+
 
     @Override
     protected void onResume() {
         super.onResume();
-        if(AppUtils.getService()==null) {
-            Intent intent = new Intent(this, BackendService.class);
-            bindService(intent, mConnection,
-                    Context.BIND_AUTO_CREATE);
-        }
-//        startService(intent);
+        performServiceStartOperation();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         if(AppUtils.getService()!=null && isServiceRunning(AppUtils.getService().getClass())) {
-            unbindService(mConnection);
+            try {
+                unbindService(mConnection);
+            }catch (IllegalArgumentException exp){
+                exp.printStackTrace();
+            }
         }
     }
+
+
 
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -94,6 +116,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             backendService.startService(b.getmIntent());
             Toast.makeText(MainActivity.this, "Connected", Toast.LENGTH_SHORT)
                     .show();
+
+            firebaseAuth = FirebaseAuth.getInstance();
+            user = firebaseAuth.getCurrentUser();
+            checkUserStatus();
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -122,18 +148,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        myRef.setValue("A");
 //        myRef.push().child("A");
 //        myRef.push().setValue("B");
-
+        startActivity(new Intent(this, LoginActivity.class));
     }
 
     private void openReminderScreen(){
 //        startActivity(new Intent(this, ReminderActivity.class));
 
 //        myRef.child("A").child("B").setValue("C");
-
+        startActivity(new Intent(this, SignUpActivity.class));
     }
 
     private void openDailyExpenseScreen(){
         startActivity(new Intent(this, ExpenseActivity.class));
+        finish();
+    }
+
+    private void performLoggedInOperation(){
+//        performServiceStartOperation();
+//        AppUtils.getService().performLoginOperation(user.getUid());
+        AppUtils.getService().startListeners(user.getUid());
+        openDailyExpenseScreen();
+        finish();
+    }
+
+    private void openLoginScreen(){
+        startActivity(new Intent(this, LoginActivity.class));
+        finish();
+    }
+
+    private void performServiceStartOperation(){
+        if(AppUtils.getService()==null) {
+            Intent intent = new Intent(this, BackendService.class);
+            bindService(intent, mConnection,
+                    Context.BIND_AUTO_CREATE);
+        }else{
+            checkUserStatus();
+        }
     }
 
     @Override
@@ -147,6 +197,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.button_daily_expense:
                 openDailyExpenseScreen();
+                break;
+            case R.id.button_logout:
+                performLogOutOperation();
                 break;
         }
     }

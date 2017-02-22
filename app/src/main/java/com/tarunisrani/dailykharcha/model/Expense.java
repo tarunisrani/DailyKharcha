@@ -18,8 +18,8 @@ public class Expense implements Parcelable {
         expense_type = in.readString();
         payment_type = in.readString();
         server_expense_id = in.readString();
-        id = in.readLong();
-        sheet_id = in.readLong();
+        id = in.readString();
+        sheet_id = in.readString();
         amount = in.readDouble();
     }
 
@@ -83,19 +83,19 @@ public class Expense implements Parcelable {
         this.payment_type = payment_type;
     }
 
-    public long getSheet_id() {
+    public String getSheet_id() {
         return sheet_id;
     }
 
-    public void setSheet_id(long sheet_id) {
+    public void setSheet_id(String sheet_id) {
         this.sheet_id = sheet_id;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -112,8 +112,8 @@ public class Expense implements Parcelable {
     private String expense_detail;
     private String expense_group = "";
     private String expense_type;
-    private long id;
-    private long sheet_id;
+    private String id;
+    private String sheet_id;
     private String server_expense_id;
     private String payment_type;
     private double amount;
@@ -123,9 +123,9 @@ public class Expense implements Parcelable {
     }
 
     public Expense(Cursor cursor){
-        this.id = cursor.getLong(cursor.getColumnIndex(ExpenseDataSource.COLUMN_ID));
+        this.id = cursor.getString(cursor.getColumnIndex(ExpenseDataSource.COLUMN_ID));
         this.server_expense_id = cursor.getString(cursor.getColumnIndex(ExpenseDataSource.COLUMN_ID_SERVER));
-        this.sheet_id = cursor.getLong(cursor.getColumnIndex(ExpenseDataSource.COLUMN_SHEET_ID));
+        this.sheet_id = cursor.getString(cursor.getColumnIndex(ExpenseDataSource.COLUMN_SHEET_ID));
         this.expense_date = cursor.getString(cursor.getColumnIndex(ExpenseDataSource.COLUMN_DATE));
         this.expense_detail = cursor.getString(cursor.getColumnIndex(ExpenseDataSource.COLUMN_DETAIL));
         this.expense_group = cursor.getString(cursor.getColumnIndex(ExpenseDataSource.COLUMN_GROUP));
@@ -159,8 +159,8 @@ public class Expense implements Parcelable {
         dest.writeString(expense_type);
         dest.writeString(payment_type);
         dest.writeString(server_expense_id);
-        dest.writeLong(id);
-        dest.writeLong(sheet_id);
+        dest.writeString(id);
+        dest.writeString(sheet_id);
         dest.writeDouble(amount);
     }
 
