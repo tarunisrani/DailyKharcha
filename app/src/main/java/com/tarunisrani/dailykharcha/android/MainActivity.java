@@ -39,12 +39,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Button button_todo = (Button) findViewById(R.id.button_todo);
         Button button_reminder = (Button) findViewById(R.id.button_reminder);
         Button button_daily_expense = (Button) findViewById(R.id.button_daily_expense);
-        Button button_logout = (Button) findViewById(R.id.button_logout);
+//        Button button_logout = (Button) findViewById(R.id.button_logout);
 
         button_todo.setOnClickListener(this);
         button_reminder.setOnClickListener(this);
         button_daily_expense.setOnClickListener(this);
-        button_logout.setOnClickListener(this);
+//        button_logout.setOnClickListener(this);
 
 
 
@@ -67,6 +67,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.w(TAG, "Failed to read value.", error.toException());
             }
         });*/
+
+        firebaseAuth = FirebaseAuth.getInstance();
+        user = firebaseAuth.getCurrentUser();
+
     }
 
     private void checkUserStatus(){
@@ -94,7 +98,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onPause() {
-        super.onPause();
         if(AppUtils.getService()!=null && isServiceRunning(AppUtils.getService().getClass())) {
             try {
                 unbindService(mConnection);
@@ -102,9 +105,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 exp.printStackTrace();
             }
         }
+        super.onPause();
     }
 
-
+    @Override
+    protected void onDestroy() {
+        if(AppUtils.getService()!=null && isServiceRunning(AppUtils.getService().getClass())) {
+            try {
+                unbindService(mConnection);
+            }catch (IllegalArgumentException exp){
+                exp.printStackTrace();
+            }
+        }
+        super.onDestroy();
+    }
 
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -117,8 +131,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Toast.makeText(MainActivity.this, "Connected", Toast.LENGTH_SHORT)
                     .show();
 
-            firebaseAuth = FirebaseAuth.getInstance();
-            user = firebaseAuth.getCurrentUser();
             checkUserStatus();
         }
 
@@ -198,9 +210,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.button_daily_expense:
                 openDailyExpenseScreen();
                 break;
-            case R.id.button_logout:
+            /*case R.id.button_logout:
                 performLogOutOperation();
-                break;
+                break;*/
         }
     }
 }

@@ -11,12 +11,24 @@
     android:background="@android:color/holo_orange_light"
     tools:context=".android.ExpenseActivity">
 
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
     <Button
-            android:id="@+id/button_logout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="Logout"/>
+        android:id="@+id/button_logout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dp"
+        android:text="Logout"/>
+    <Spinner
+        android:id="@+id/group_list_spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"></Spinner>
+
+
+</LinearLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -27,11 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:src="@drawable/plus"/>
-        <Spinner
-            android:id="@+id/group_list_spinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"></Spinner>
+
 
         <ImageView
             android:id="@+id/button_share_all_expense_sheet"

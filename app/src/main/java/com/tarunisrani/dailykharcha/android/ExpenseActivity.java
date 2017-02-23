@@ -12,7 +12,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -20,6 +20,7 @@ import android.widget.Spinner;
 
 import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.adapters.ExpenseSheetListAdapter;
+import com.tarunisrani.dailykharcha.adapters.GroupListAdapter;
 import com.tarunisrani.dailykharcha.dbhelper.ExpenseSheetDataSource;
 import com.tarunisrani.dailykharcha.dbhelper.GroupDataSource;
 import com.tarunisrani.dailykharcha.listeners.ExpenseSheetListClickListener;
@@ -39,7 +40,7 @@ import java.util.Calendar;
 import static com.tarunisrani.dailykharcha.R.id.button_logout;
 import static com.tarunisrani.dailykharcha.utils.AppUtils.getService;
 
-public class ExpenseActivity extends AppCompatActivity implements View.OnClickListener, ExpenseSheetListClickListener {
+public class ExpenseActivity extends AppCompatActivity implements View.OnClickListener, ExpenseSheetListClickListener, AdapterView.OnItemSelectedListener {
 
     private RecyclerView expenses_sheet_list_view;
     private ExpenseSheetListAdapter sheetListAdapter;
@@ -53,16 +54,19 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Sheet sheet = intent.getParcelableExtra("SHEET");
-            String action = intent.getStringExtra("ACTION");
 
-            Log.e("Sheet "+action, sheet.toString());
-
-            if(action.equalsIgnoreCase(BackendService.ACTION_ADDED)){
+            if(intent.getAction().equalsIgnoreCase(BackendService.FILTER_SHEET)){
+                Sheet sheet = intent.getParcelableExtra("SHEET");
+                String action = intent.getStringExtra("ACTION");
+                Log.e("Sheet "+action, sheet.toString());
                 fetchSheetList();
-            }else if(action.equalsIgnoreCase(BackendService.ACTION_MODIFIED)){
-                fetchSheetList();
+            }else if(intent.getAction().equalsIgnoreCase(BackendService.FILTER_GROUP)){
+                Group group = intent.getParcelableExtra("GROUP");
+                String action = intent.getStringExtra("ACTION");
+                Log.e("Group "+action, group.toString());
+                prepareListOfGroups();
             }
+
 
         }
     };
@@ -82,6 +86,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         Button button_logout = (Button) findViewById(R.id.button_logout);
 
         group_list_spinner = (Spinner) findViewById(R.id.group_list_spinner);
+        group_list_spinner.setOnItemSelectedListener(this);
 
         prepareListOfGroups();
 
@@ -103,13 +108,22 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void prepareListOfGroups(){
-        ArrayAdapter<String> group_list_adapter = new ArrayAdapter<>(this,     android.R.layout.simple_list_item_1, android.R.id.text1);
-        group_list_spinner.setAdapter(group_list_adapter);
         GroupDataSource groupDataSource = new GroupDataSource(this);
         ArrayList<Group> groups = groupDataSource.getGroupItems();
-        for(Group group : groups){
-            group_list_adapter.add(group.getGroup_id());
-        }
+
+//        ArrayAdapter<String> group_list_adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, android.R.id.text1);
+
+        GroupListAdapter groupListAdapter = new GroupListAdapter(this, R.layout.group_list_item_layout, groups);
+
+        group_list_spinner.setAdapter(groupListAdapter);
+
+        String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
+
+        int index = groupListAdapter.getIDPosition(selected_group_id);
+        group_list_spinner.setSelection(index!=-1?index:0);
+//        for(Group group : groups){
+//            group_list_adapter.add(group.getGroup_id());
+//        }
     }
 
 
@@ -171,6 +185,12 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         Intent intent = new Intent(this, ExpenseDetailActivity.class);
         intent.putExtra("SHEET", sheet);
         startActivityForResult(intent, 100);
+    }
+
+    private void openLoginScreen(){
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     private boolean updateSheetDetails(Sheet sheet){
@@ -292,6 +312,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
                 break;
             case button_logout:
                 AppUtils.getService().performSignOut();
+                openLoginScreen();
                 break;
         }
     }
@@ -379,7 +400,10 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(receiver, new IntentFilter(BackendService.FILTER_SHEET));
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BackendService.FILTER_SHEET);
+        intentFilter.addAction(BackendService.FILTER_GROUP);
+        registerReceiver(receiver, intentFilter);
     }
 
     @Override
@@ -388,4 +412,16 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         unregisterReceiver(receiver);
     }
 
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        Group selected_group = ((GroupListAdapter)parent.getAdapter()).getItem(position);
+        selectedGroupid = selected_group.getGroup_id();
+        new SharedPreferrenceUtil().setSelectedGroup(this, selectedGroupid);
+        fetchSheetList();
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
+    }
 }

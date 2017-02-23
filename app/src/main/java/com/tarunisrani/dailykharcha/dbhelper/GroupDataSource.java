@@ -20,7 +20,8 @@ public class GroupDataSource {
 
     public static final String COLUMN_ID = "group_id";
     public static final String COLUMN_NAME = "group_name";
-    public static final String COLUMN_OWNER = "group_owner_id";
+    public static final String COLUMN_OWNER_ID = "group_owner_id";
+    public static final String COLUMN_OWNER_NAME = "group_owner_name";
 
     private DatabaseHelper databaseHelper;
 
@@ -28,7 +29,8 @@ public class GroupDataSource {
     private static final String DATABASE_CREATE = "create table if not exists " + TABLE_NAME + "( "
             + COLUMN_ID + " text primary key, "
             + COLUMN_NAME + " text, "
-            + COLUMN_OWNER + " text "
+            + COLUMN_OWNER_ID + " text, "
+            + COLUMN_OWNER_NAME + " text "
             +");";
 
     private static final String SQL_DELETE_ENTRIES =
@@ -37,7 +39,7 @@ public class GroupDataSource {
     private static final String SQL_CLEAN_TABLE =
             "DELETE FROM " + TABLE_NAME;
 
-    private String[] allColumns = {COLUMN_ID, COLUMN_NAME, COLUMN_OWNER};
+    private String[] allColumns = {COLUMN_ID, COLUMN_NAME, COLUMN_OWNER_ID, COLUMN_OWNER_NAME};
 
 
     public GroupDataSource(Context context) {
@@ -58,7 +60,8 @@ public class GroupDataSource {
         ContentValues values = new ContentValues();
         values.put(COLUMN_ID, group.getGroup_id());
         values.put(COLUMN_NAME, group.getGroup_name());
-        values.put(COLUMN_OWNER, group.getOwner_id());
+        values.put(COLUMN_OWNER_ID, group.getOwner_id());
+        values.put(COLUMN_OWNER_NAME, group.getOwner_name());
 
         long insertId = database.insert(TABLE_NAME, null,
                 values);
@@ -74,7 +77,8 @@ public class GroupDataSource {
         ContentValues values = new ContentValues();
         values.put(COLUMN_ID, group.getGroup_id());
         values.put(COLUMN_NAME, group.getGroup_name());
-        values.put(COLUMN_OWNER, group.getOwner_id());
+        values.put(COLUMN_OWNER_ID, group.getOwner_id());
+        values.put(COLUMN_OWNER_NAME, group.getOwner_name());
 
         long count = database.update(TABLE_NAME,
                 values, COLUMN_ID + " = " + DatabaseUtils.sqlEscapeString(group.getGroup_id()), null);

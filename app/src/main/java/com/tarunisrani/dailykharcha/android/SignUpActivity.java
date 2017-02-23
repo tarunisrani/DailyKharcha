@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.listeners.ServerSignupListener;
 import com.tarunisrani.dailykharcha.network.LoginSignupNetworkCall;
+import com.tarunisrani.dailykharcha.utils.AppConstant;
 import com.tarunisrani.dailykharcha.utils.AppUtils;
 
 public class SignUpActivity extends AppCompatActivity implements View.OnClickListener {
@@ -54,12 +55,15 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
                 @Override
                 public void onSignupCompleted(FirebaseUser user) {
 
-                    AppUtils.getService().performDBCleanOperation();
-                    AppUtils.getService().performLoginOperation(user.getUid());
-                    AppUtils.getService().startListeners(user.getUid());
-                    AppUtils.getService().createDefaultGroup(user.getUid());
                     AppUtils.getService().storeUserDetails(name, email, user.getUid());
-                    openDailyExpenseScreen();
+                    AppUtils.getService().sendEmailVerification(user);
+                    AppUtils.getService().createDefaultGroupOnServer(name, user.getUid());
+                    AppUtils.getService().performSignOut();
+//                    AppUtils.getService().performDBCleanOperation();
+//                    AppUtils.getService().performLoginOperation(user.getUid());
+//                    AppUtils.getService().startListeners(user.getUid());
+
+                    openLoginScreen();
                     finish();
                 }
 
@@ -72,8 +76,10 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
-    private void openDailyExpenseScreen(){
-        startActivity(new Intent(this, ExpenseActivity.class));
+    private void openLoginScreen(){
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.putExtra(AppConstant.INTENT_KEY_SHOW_MESSAGE, true);
+        startActivity(intent);
         finish();
     }
 

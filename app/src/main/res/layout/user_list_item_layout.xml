@@ -19,7 +19,7 @@
             android:textSize="25sp"
             android:maxLines="1"
             android:ellipsize="middle"
-            android:text="Expense Detail"/>
+            android:text="User Name"/>
 
         <ImageView
             android:id="@+id/user_list_checkmark"
@@ -39,7 +39,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:textSize="10sp"
-            android:text="Date"
+            android:text="UID"
             android:layout_below="@id/user_list_name"/>
 
 

@@ -132,6 +132,9 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
             }catch (JSONException exp){
                 exp.printStackTrace();
             }*/
+
+            AppUtils.getService().updateExpenseEntryOnServer(expense);
+
         }else{
             Log.e("ExpenseDetail", "Error while submitting expense");
         }
@@ -320,6 +323,7 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
         sheet.setAmount(sheet_amount);
         ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(this);
         if(expenseSheetDataSource.updateSheetEntry(sheet)){
+            AppUtils.getService().updateSheetEntryOnServer(sheet);
         }else{
             Log.e("ExpenseDetail", "Error while submitting Sheet");
         }

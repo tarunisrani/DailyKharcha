@@ -6,11 +6,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseUser;
 import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.listeners.ServerLoginListener;
 import com.tarunisrani.dailykharcha.network.LoginSignupNetworkCall;
+import com.tarunisrani.dailykharcha.utils.AppConstant;
 import com.tarunisrani.dailykharcha.utils.AppUtils;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
@@ -26,6 +28,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_layout);
+
+        boolean show_message = false;
+
+        Intent intent = getIntent();
+        if(intent!=null){
+            show_message = intent.getBooleanExtra(AppConstant.INTENT_KEY_SHOW_MESSAGE, false);
+        }
+
+
+        TextView verification_message_label = (TextView) findViewById(R.id.verification_message_label);
+        verification_message_label.setVisibility(show_message?View.VISIBLE:View.GONE);
+
 
         Button button_submit = (Button) findViewById(R.id.login_button_submit);
         Button button_signup = (Button) findViewById(R.id.signup_button);

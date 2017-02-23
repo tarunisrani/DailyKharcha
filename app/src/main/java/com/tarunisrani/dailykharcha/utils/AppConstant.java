@@ -5,4 +5,7 @@ package com.tarunisrani.dailykharcha.utils;
  */
 
 public class AppConstant {
+
+    public static String INTENT_KEY_SHOW_MESSAGE = "SHOW_MESSAGE";
+
 }
