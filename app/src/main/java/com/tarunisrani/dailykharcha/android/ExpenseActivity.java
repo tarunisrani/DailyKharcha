@@ -66,8 +66,6 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
                 Log.e("Group "+action, group.toString());
                 prepareListOfGroups();
             }
-
-
         }
     };
 

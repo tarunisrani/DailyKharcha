@@ -6,6 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 
 import com.google.firebase.auth.FirebaseUser;
 import com.tarunisrani.dailykharcha.R;
@@ -21,8 +22,7 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
     private EditText name_input;
     private EditText email_input;
     private EditText password_input;
-
-
+    private ProgressBar progressbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +34,7 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
         name_input = (EditText) findViewById(R.id.signup_username_input);
         email_input = (EditText) findViewById(R.id.signup_email_input);
         password_input = (EditText) findViewById(R.id.signup_password_input);
+        progressbar = (ProgressBar) findViewById(R.id.signup_progressbar);
 
         button_submit.setOnClickListener(this);
         button_login.setOnClickListener(this);
@@ -44,7 +45,7 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
         final String name = name_input.getText().toString();
         final String email = email_input.getText().toString();
         String password = password_input.getText().toString();
-
+        progressbar.setVisibility(View.VISIBLE);
         if(!name.isEmpty() && !email.isEmpty() && !password.isEmpty()){
 //            AppUtils.getService().performSignUp(email, password);
 //            AppUtils.getService().performSignIn(email, password);
@@ -54,7 +55,8 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
 
                 @Override
                 public void onSignupCompleted(FirebaseUser user) {
-
+                    progressbar.setVisibility(View.GONE);
+                    AppUtils.getService().initializeFirebase(user.getUid());
                     AppUtils.getService().storeUserDetails(name, email, user.getUid());
                     AppUtils.getService().sendEmailVerification(user);
                     AppUtils.getService().createDefaultGroupOnServer(name, user.getUid());
@@ -69,7 +71,7 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
 
                 @Override
                 public void onSignupFailed() {
-
+                    progressbar.setVisibility(View.GONE);
                 }
             });
 

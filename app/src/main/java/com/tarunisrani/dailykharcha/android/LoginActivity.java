@@ -6,7 +6,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseUser;
 import com.tarunisrani.dailykharcha.R;
@@ -21,7 +23,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private EditText email_input;
     private EditText password_input;
-
+    private ProgressBar progressbar;
 
 
     @Override
@@ -45,6 +47,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         Button button_signup = (Button) findViewById(R.id.signup_button);
         email_input = (EditText) findViewById(R.id.login_email_input);
         password_input = (EditText) findViewById(R.id.login_password_input);
+        progressbar = (ProgressBar) findViewById(R.id.login_progressbar);
 
         button_submit.setOnClickListener(this);
         button_signup.setOnClickListener(this);
@@ -54,7 +57,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void performSubmitOperation(){
         String email = email_input.getText().toString();
         String password = password_input.getText().toString();
-
+        progressbar.setVisibility(View.VISIBLE);
         if(!email.isEmpty() && !password.isEmpty()){
 //            AppUtils.getService().performSignUp(email, password);
 //            AppUtils.getService().performSignIn(email, password);
@@ -64,15 +67,21 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                 @Override
                 public void onLoginCompleted(FirebaseUser user) {
-                    AppUtils.getService().performLoginOperation(user.getUid());
-                    AppUtils.getService().startListeners(user.getUid());
-                    openDailyExpenseScreen();
-                    finish();
+                    progressbar.setVisibility(View.GONE);
+                    if(user.isEmailVerified()) {
+                        AppUtils.getService().performLoginOperation(user.getUid());
+                        AppUtils.getService().initializeFirebase(user.getUid());
+                        AppUtils.getService().startListeners(user.getUid());
+                        openDailyExpenseScreen();
+                        finish();
+                    }else{
+                        Toast.makeText(LoginActivity.this, "Account not verified", Toast.LENGTH_SHORT).show();
+                    }
                 }
 
                 @Override
                 public void onLoginFailed() {
-
+                    progressbar.setVisibility(View.GONE);
                 }
             });
 

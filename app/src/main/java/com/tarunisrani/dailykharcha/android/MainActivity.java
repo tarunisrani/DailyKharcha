@@ -178,6 +178,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void performLoggedInOperation(){
 //        performServiceStartOperation();
 //        AppUtils.getService().performLoginOperation(user.getUid());
+        AppUtils.getService().initializeFirebase(user.getUid());
         AppUtils.getService().startListeners(user.getUid());
         openDailyExpenseScreen();
         finish();

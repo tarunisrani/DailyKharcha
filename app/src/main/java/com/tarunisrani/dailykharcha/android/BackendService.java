@@ -95,15 +95,15 @@ public class BackendService extends Service {
         }
     }
 
-    public void startListeners(String user_id){
-
-        String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
-
+    public void initializeFirebase(String user_id){
         database = FirebaseDatabase.getInstance();
         global_user_reference = database.getReference("dailykharcha").child("users").child(user_id);
         global_user_details_reference = database.getReference("dailykharcha").child("users");
 //        global_database_reference = database.getReference("dailykharcha").child("databases").child(selected_group_id);
         global_database_reference = database.getReference("dailykharcha").child("databases");
+    }
+
+    public void startListeners(String user_id){
 
         startAuthenticationListener();
 
@@ -153,25 +153,8 @@ public class BackendService extends Service {
     }
 
     private void startExpenseListener(String selected_group_id){
-//        FirebaseDatabase database = FirebaseDatabase.getInstance();
-//        final DatabaseReference global_user_reference = database.getReference("expense");
-//        String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
+        Log.d("Listener", "Expense listener started");
         final DatabaseReference reference = global_database_reference.child(selected_group_id).child("expense");
-        /*global_user_reference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot!=null && dataSnapshot.getValue()!=null) {
-                    Log.e("Service Expense", dataSnapshot.getValue().toString());
-                }else{
-                    Log.e("Service Expense", "null");
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("Service Expense", "onCancelled");
-            }
-        });*/
 
         reference.addChildEventListener(new ChildEventListener() {
             @Override
@@ -227,26 +210,9 @@ public class BackendService extends Service {
     }
 
     private void startSheetListener(String selected_group_id){
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-//        final DatabaseReference global_user_reference = database.getReference("sheet");
-//        String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
+        Log.d("Listener", "Sheet listener started");
         final DatabaseReference reference = global_database_reference.child(selected_group_id).child("sheet");
-        /*global_user_reference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                ArrayList<Sheet> sheetArrayList = new ArrayList<>();
-                if (dataSnapshot!=null && dataSnapshot.getValue()!=null) {
-                    Log.e("Service Sheet", dataSnapshot.getValue().toString());
-                }else{
-                    Log.e("Service Sheet", "null");
-                }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("Service Sheet", "onCancelled");
-            }
-        });*/
         reference.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -303,7 +269,6 @@ public class BackendService extends Service {
     private void startGroupListener(){
         final DatabaseReference reference = global_user_reference.child("group");
 
-
         reference.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -359,8 +324,6 @@ public class BackendService extends Service {
 
     private void startSharedGroupListener(){
         final DatabaseReference reference = global_user_reference.child("sharedgroup");
-
-
         reference.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -410,7 +373,6 @@ public class BackendService extends Service {
 
             }
         });
-
     }
 
     private void addSheetIfNotExist(Sheet sheet){
@@ -451,6 +413,7 @@ public class BackendService extends Service {
         GroupDataSource groupDataSource = new GroupDataSource(this);
         if(!groupDataSource.isGroupEntryExist(group)){
             if(createGroupEntryInDb(group)){
+                startSheetListener(group.getGroup_id());
                 startExpenseListener(group.getGroup_id());
             }
         }
@@ -467,7 +430,6 @@ public class BackendService extends Service {
     }
 
     public void createExpenseEntryOnServer(final Expense expense) {
-//        FirebaseDatabase database = FirebaseDatabase.getInstance();
         String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
         DatabaseReference reference = global_database_reference.child(selected_group_id).child("expense").push();
 
@@ -541,22 +503,21 @@ public class BackendService extends Service {
     }
 
     public void updateExpenseEntryOnServer(final Expense expense) {
-//        FirebaseDatabase database = FirebaseDatabase.getInstance();
         String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
         DatabaseReference reference = global_database_reference.child(selected_group_id).child("expense").child(expense.getServer_expense_id());
         reference.setValue(expense);
     }
 
     public void createSheetEntryOnServer(final Sheet sheet) throws JSONException{
-//        FirebaseDatabase database = FirebaseDatabase.getInstance();
         String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
-        DatabaseReference reference = global_database_reference.child(selected_group_id).child("sheet");
+        DatabaseReference reference = global_database_reference.child(selected_group_id).child("sheet").push();
 
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot!=null && dataSnapshot.getValue()!=null) {
                     ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(BackendService.this);
+
                     Log.e("Sheet", dataSnapshot.getKey() + "  --  " + dataSnapshot.getValue().toString());
                     sheet.setServer_id(dataSnapshot.getKey());
                     if (expenseSheetDataSource.updateSheetEntry(sheet)) {
@@ -573,15 +534,13 @@ public class BackendService extends Service {
             }
         });
 
-        reference.push().setValue(sheet);
+        reference.setValue(sheet);
     }
 
     public void updateSheetEntryOnServer(Sheet sheet){
         String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
         final DatabaseReference reference = global_database_reference.child(selected_group_id).child("sheet").child(sheet.getServer_id());
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-//        DatabaseReference reference = database.getReference("sheet").child(sheet.getServer_id());
         reference.setValue(sheet);
     }
 
@@ -690,8 +649,6 @@ public class BackendService extends Service {
 
     public void performLoginOperation(String user_id){
 
-
-
         String current_user_id = new SharedPreferrenceUtil().fetchUser(this);
         if(current_user_id.equalsIgnoreCase(user_id)){
             //Relogin scenario
@@ -706,8 +663,6 @@ public class BackendService extends Service {
         new SharedPreferrenceUtil().setSelectedGroup(this, group_id);
 
         new SharedPreferrenceUtil().setUser(this, user_id);
-
-
     }
 
     public void performDBCleanOperation(){
@@ -730,7 +685,6 @@ public class BackendService extends Service {
 
             }
         }
-
 
     }
 
