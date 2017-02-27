@@ -22,11 +22,13 @@ import com.tarunisrani.dailykharcha.dbhelper.ExpenseSheetDataSource;
 import com.tarunisrani.dailykharcha.listeners.ExpenseListClickListener;
 import com.tarunisrani.dailykharcha.model.Expense;
 import com.tarunisrani.dailykharcha.model.Sheet;
+import com.tarunisrani.dailykharcha.utils.AppConstant;
 import com.tarunisrani.dailykharcha.utils.AppUtils;
 
 import java.util.ArrayList;
 
-import static com.tarunisrani.dailykharcha.R.id.expense_detail_sync_button;
+//import static com.tarunisrani.dailykharcha.R.id.expense_detail_sync_button;
+
 
 public class ExpenseDetailActivity extends AppCompatActivity implements View.OnClickListener, ExpenseListClickListener {
 
@@ -43,8 +45,8 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Expense expense = intent.getParcelableExtra("EXPENSE");
-            String action = intent.getStringExtra("ACTION");
+            Expense expense = intent.getParcelableExtra(AppConstant.INTENT_KEY_EXPENSE);
+            String action = intent.getStringExtra(AppConstant.INTENT_KEY_ACTION);
 
             Log.e("Expense "+action, expense.toString());
 
@@ -65,7 +67,7 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
 
         Intent intent = getIntent();
         if(intent != null){
-            sheet = intent.getParcelableExtra("SHEET");
+            sheet = intent.getParcelableExtra(AppConstant.INTENT_KEY_SHEET);
         }
 
         expenseListAdapter = new ExpenseListAdapter(this);
@@ -119,8 +121,8 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
 
     private void openExpenseItemDetailScreen(Expense expense, boolean editable){
         Intent intent = new Intent(this, ExpenseAddItemActivity.class);
-        intent.putExtra("EXPENSE", expense);
-        intent.putExtra("EDITABLE", editable);
+        intent.putExtra(AppConstant.INTENT_KEY_EXPENSE, expense);
+        intent.putExtra(AppConstant.INTENT_KEY_EDITABLE, editable);
         startActivityForResult(intent, 100);
     }
 
@@ -256,9 +258,9 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
             case R.id.button_submit_expense_sheet:
                 performSubmitOperation();
                 break;
-            case expense_detail_sync_button:
+//            case expense_detail_sync_button:
 //                performSyncOperation(true);
-                break;
+//                break;
         }
     }
 
@@ -266,7 +268,7 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode == 200 && data!=null){
-            Expense expense = data.getParcelableExtra("EXPENSE");
+            Expense expense = data.getParcelableExtra(AppConstant.INTENT_KEY_EXPENSE);
             expense.setSheet_id(sheet.getSheet_id());
             Log.e("expense.getId(): ", "" + expense.getId());
             if(expense.getId()!=null){

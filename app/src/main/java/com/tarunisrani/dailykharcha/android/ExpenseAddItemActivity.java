@@ -12,11 +12,12 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 
 import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.model.Expense;
+import com.tarunisrani.dailykharcha.utils.AppConstant;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -28,9 +29,9 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
     private EditText expense_add_item_amount;
     private Spinner expense_add_item_expense_type_spinner;
     private Spinner expense_add_item_payment_type_spinner;
-    private ImageView expense_add_item_submit;
-    private ImageView expense_add_item_reset;
-    private ImageView expense_add_item_edit;
+    private LinearLayout expense_add_item_submit;
+    private LinearLayout expense_add_item_reset;
+    private LinearLayout expense_add_item_edit;
 
     private ArrayList<String> payment_type_list;
     private ArrayList<String> expense_type_list;
@@ -57,9 +58,9 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
         expense_add_item_amount = (EditText) findViewById(R.id.expense_add_item_amount);
         expense_add_item_expense_type_spinner = (Spinner) findViewById(R.id.expense_add_item_expense_type_spinner);
         expense_add_item_payment_type_spinner = (Spinner) findViewById(R.id.expense_add_item_payment_type_spinner);
-        expense_add_item_submit = (ImageView) findViewById(R.id.expense_add_item_submit);
-        expense_add_item_reset = (ImageView) findViewById(R.id.expense_add_item_reset);
-        expense_add_item_edit = (ImageView) findViewById(R.id.expense_add_item_edit);
+        expense_add_item_submit = (LinearLayout) findViewById(R.id.expense_add_item_submit);
+        expense_add_item_reset = (LinearLayout) findViewById(R.id.expense_add_item_reset);
+        expense_add_item_edit = (LinearLayout) findViewById(R.id.expense_add_item_edit);
 
         expense_type_list = new ArrayList<>();
         expense_type_list.add("Grocery");
@@ -90,8 +91,8 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
 
         Intent intent = getIntent();
         if(intent!=null){
-            Expense expense = intent.getParcelableExtra("EXPENSE");
-            boolean editable = intent.getBooleanExtra("EDITABLE", false);
+            Expense expense = intent.getParcelableExtra(AppConstant.INTENT_KEY_EXPENSE);
+            boolean editable = intent.getBooleanExtra(AppConstant.INTENT_KEY_EDITABLE, false);
             processIntent(expense);
             if(editable){
                 performEditOperation();
@@ -185,7 +186,7 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
             }
             expense.setExpense_type(selected_expense_type);
             expense.setPayment_type(selected_payment_type);
-            intent.putExtra("EXPENSE", expense);
+            intent.putExtra(AppConstant.INTENT_KEY_EXPENSE, expense);
             setResult(200, intent);
             finish();
         }

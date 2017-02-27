@@ -32,6 +32,7 @@ import com.tarunisrani.dailykharcha.listeners.UserListGenerationListener;
 import com.tarunisrani.dailykharcha.model.Group;
 import com.tarunisrani.dailykharcha.model.Sheet;
 import com.tarunisrani.dailykharcha.model.UserDetails;
+import com.tarunisrani.dailykharcha.utils.AppConstant;
 import com.tarunisrani.dailykharcha.utils.AppUtils;
 import com.tarunisrani.dailykharcha.utils.SharedPreferrenceUtil;
 
@@ -59,13 +60,13 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         public void onReceive(Context context, Intent intent) {
 
             if(intent.getAction().equalsIgnoreCase(BackendService.FILTER_SHEET)){
-                Sheet sheet = intent.getParcelableExtra("SHEET");
-                String action = intent.getStringExtra("ACTION");
+                Sheet sheet = intent.getParcelableExtra(AppConstant.INTENT_KEY_SHEET);
+                String action = intent.getStringExtra(AppConstant.INTENT_KEY_ACTION);
                 Log.e("Sheet "+action, sheet.toString());
                 fetchSheetList();
             }else if(intent.getAction().equalsIgnoreCase(BackendService.FILTER_GROUP)){
-                Group group = intent.getParcelableExtra("GROUP");
-                String action = intent.getStringExtra("ACTION");
+                Group group = intent.getParcelableExtra(AppConstant.INTENT_KEY_GROUP);
+                String action = intent.getStringExtra(AppConstant.INTENT_KEY_ACTION);
                 Log.e("Group "+action, group.toString());
                 prepareListOfGroups();
             }
@@ -123,9 +124,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
         int index = groupListAdapter.getIDPosition(selected_group_id);
         group_list_spinner.setSelection(index!=-1?index:0);
-//        for(Group group : groups){
-//            group_list_adapter.add(group.getGroup_id());
-//        }
+
     }
 
 
@@ -184,7 +183,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
     private void openSheetScreen(Sheet sheet){
         Intent intent = new Intent(this, ExpenseDetailActivity.class);
-        intent.putExtra("SHEET", sheet);
+        intent.putExtra(AppConstant.INTENT_KEY_SHEET, sheet);
         startActivityForResult(intent, 100);
     }
 
@@ -298,7 +297,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     private void performAnalysisOperation(int position){
         Sheet sheet = sheetListAdapter.getItem(position);
         Intent intent = new Intent(this, AnalyseSheetActivity.class);
-        intent.putExtra("SHEET", sheet);
+        intent.putExtra(AppConstant.INTENT_KEY_SHEET, sheet);
         startActivity(intent);
     }
 
@@ -363,13 +362,6 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
                 break;
         }
     }
-
-    /*private void clearAllEditEnabledItems(){
-        for(int index = 0; index<sheetListAdapter.getItemCount(); index++) {
-            ExpenseSheetListAdapter.ViewHolder viewHolder = (ExpenseSheetListAdapter.ViewHolder)expenses_sheet_list_view.findViewHolderForAdapterPosition(index);
-            viewHolder.hideControlPanel();
-        }
-    }*/
 
     private boolean clearAllEditEnabledItems(){
         int count =0;

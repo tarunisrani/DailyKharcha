@@ -15,14 +15,33 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <ImageView
+        <!--<ImageView
             android:id="@+id/expense_add_item_reset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/delete_1"
-            android:text="Add Item"/>
+            android:text="Add Item"/>-->
+        <LinearLayout
+            android:id="@+id/expense_add_item_reset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/investment_goal_item_bg_hollow"
+            android:padding="10dp">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/delete_1"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="5dp"
+                android:layout_gravity="center_vertical"
+                android:text="DELETE ITEM"/>
+        </LinearLayout>
 
-        <ImageView
+        <!--<ImageView
             android:id="@+id/expense_add_item_submit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -36,7 +55,51 @@
             android:layout_alignParentRight="true"
             android:src="@drawable/edit"
             android:visibility="gone"
-            android:text="Submit"/>
+            android:text="Submit"/>-->
+
+        <LinearLayout
+            android:id="@+id/expense_add_item_submit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/investment_goal_item_bg_hollow"
+            android:padding="10dp">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/checkmark"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="5dp"
+                android:layout_gravity="center_vertical"
+                android:text="SUBMIT"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/expense_add_item_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentRight="true"
+            android:background="@drawable/investment_goal_item_bg_hollow"
+            android:padding="10dp"
+            android:visibility="gone">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/edit"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_marginLeft="5dp"
+                android:layout_gravity="center_vertical"
+                android:text="EDIT ITEM"/>
+        </LinearLayout>
+
     </RelativeLayout>
 
 
