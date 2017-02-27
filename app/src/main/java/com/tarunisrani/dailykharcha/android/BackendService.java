@@ -23,6 +23,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.tarunisrani.dailykharcha.dbhelper.ExpenseDataSource;
 import com.tarunisrani.dailykharcha.dbhelper.ExpenseSheetDataSource;
 import com.tarunisrani.dailykharcha.dbhelper.GroupDataSource;
+import com.tarunisrani.dailykharcha.listeners.AddGroupOnServerListener;
 import com.tarunisrani.dailykharcha.listeners.FirebaseListener;
 import com.tarunisrani.dailykharcha.listeners.UserListGenerationListener;
 import com.tarunisrani.dailykharcha.model.Expense;
@@ -456,7 +457,7 @@ public class BackendService extends Service {
         reference.setValue(expense);
     }
 
-    public void createGroupEntryOnServer(final Group group) {
+    public void createGroupEntryOnServer(final Group group, final AddGroupOnServerListener listener) {
         DatabaseReference reference = global_user_reference.child("group").push();
 
         reference.addValueEventListener(new ValueEventListener() {
@@ -464,7 +465,9 @@ public class BackendService extends Service {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot!=null && dataSnapshot.getValue()!=null) {
                     Log.e("Group", dataSnapshot.getKey() + "  --  " + dataSnapshot.getValue().toString());
-
+                    if(listener!=null){
+                        listener.onGroupAddedOnServer();
+                    }
                 }
             }
 
@@ -608,8 +611,7 @@ public class BackendService extends Service {
                             Toast.makeText(BackendService.this, "SignIn Failed",
                                     Toast.LENGTH_SHORT).show();
                         }else{
-                            Toast.makeText(BackendService.this, "SignIn Success",
-                                    Toast.LENGTH_SHORT).show();
+
                             if(listener!=null){
                                 listener.onLoginCompleted(task.getResult().getUser());
                             }
@@ -647,9 +649,9 @@ public class BackendService extends Service {
         }
     }
 
-    public void performLoginOperation(String user_id){
+    public void performLoginOperation(String name, String user_id){
 
-        String current_user_id = new SharedPreferrenceUtil().fetchUser(this);
+        String current_user_id = new SharedPreferrenceUtil().fetchUserID(this);
         if(current_user_id.equalsIgnoreCase(user_id)){
             //Relogin scenario
 //            String group_id = user_id+"_default";
@@ -662,7 +664,8 @@ public class BackendService extends Service {
         String group_id = user_id+"_default";
         new SharedPreferrenceUtil().setSelectedGroup(this, group_id);
 
-        new SharedPreferrenceUtil().setUser(this, user_id);
+        new SharedPreferrenceUtil().setUserName(this, name);
+        new SharedPreferrenceUtil().setUserID(this, user_id);
     }
 
     public void performDBCleanOperation(){
@@ -698,7 +701,7 @@ public class BackendService extends Service {
             group.setGroup_name("default");
             group.setOwner_id(user_id);
             group.setOwner_name(name);
-            createGroupEntryOnServer(group);
+            createGroupEntryOnServer(group, null);
 //            if(groupDataSource.createGroupEntry(group)){
 //                createGroupEntryOnServer(group);
 //            }
@@ -706,6 +709,23 @@ public class BackendService extends Service {
         new SharedPreferrenceUtil().setSelectedGroup(this, group_id);
 
     }
+
+    public boolean createGroupEntryInDB(Group group){
+        GroupDataSource groupDataSource = new GroupDataSource(this);
+
+        if(!groupDataSource.isGroupEntryExist(group)){
+            if(groupDataSource.createGroupEntry(group)){
+                return true;
+            }else {
+                Log.e("Add Group", "Error occurred while creating group.");
+                return false;
+            }
+        }else{
+            Log.e("Add Group", "Group already exist.");
+            return false;
+        }
+    }
+
 
     public void storeUserDetails(String name, String email, String uid){
 
@@ -757,7 +777,7 @@ public class BackendService extends Service {
 
 
     private void fetchUserList(DatabaseReference reference, final long count, final UserListGenerationListener listener){
-        final String user_id = new SharedPreferrenceUtil().fetchUser(this);
+        final String user_id = new SharedPreferrenceUtil().fetchUserID(this);
         final ArrayList<UserDetails> userDetailsArrayList = new ArrayList<>();
         reference.addChildEventListener(new ChildEventListener() {
             @Override

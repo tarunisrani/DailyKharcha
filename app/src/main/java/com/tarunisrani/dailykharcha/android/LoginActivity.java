@@ -69,7 +69,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 public void onLoginCompleted(FirebaseUser user) {
                     progressbar.setVisibility(View.GONE);
                     if(user.isEmailVerified()) {
-                        AppUtils.getService().performLoginOperation(user.getUid());
+                        Toast.makeText(LoginActivity.this, "SignIn Success",
+                                Toast.LENGTH_SHORT).show();
+                        AppUtils.getService().performLoginOperation(user.getDisplayName(), user.getUid());
                         AppUtils.getService().initializeFirebase(user.getUid());
                         AppUtils.getService().startListeners(user.getUid());
                         openDailyExpenseScreen();

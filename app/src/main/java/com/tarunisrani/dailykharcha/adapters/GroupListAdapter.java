@@ -48,20 +48,29 @@ public class GroupListAdapter extends ArrayAdapter {
                                 ViewGroup parent) {
 
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View layout = inflater.inflate(R.layout.group_list_item_layout, parent, false);
+        if(position == mList.size()-1){
+            View layout = inflater.inflate(R.layout.group_list_last_item_layout, parent, false);
+
+            TextView group_list_add_button = (TextView) layout.findViewById(R.id.group_list_add_button);
+
+            return layout;
+        }else{
+            View layout = inflater.inflate(R.layout.group_list_item_layout, parent, false);
 
 
-        TextView group_list_name = (TextView) layout.findViewById(R.id.group_list_name);
-        TextView group_list_owner_name = (TextView) layout.findViewById(R.id.group_list_owner_name);
-        TextView group_list_uid = (TextView) layout.findViewById(R.id.group_list_uid);
+            TextView group_list_name = (TextView) layout.findViewById(R.id.group_list_name);
+            TextView group_list_owner_name = (TextView) layout.findViewById(R.id.group_list_owner_name);
+            TextView group_list_uid = (TextView) layout.findViewById(R.id.group_list_uid);
 
-        Group group = mList.get(position);
-        group_list_name.setText(group.getGroup_name());
-        group_list_owner_name.setText(group.getOwner_name());
-        group_list_uid.setText(group.getOwner_id());
+            Group group = mList.get(position);
+            group_list_name.setText(group.getGroup_name());
+            group_list_owner_name.setText(group.getOwner_name());
+            group_list_uid.setText(group.getOwner_id());
 
 
-        return layout;
+            return layout;
+        }
+
 
     }
 
@@ -92,6 +101,10 @@ public class GroupListAdapter extends ArrayAdapter {
             }
         }
         return -1;
+    }
+
+    public int getItemCount(){
+        return mList.size();
     }
 
     @Override

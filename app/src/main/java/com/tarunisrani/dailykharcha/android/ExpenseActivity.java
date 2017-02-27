@@ -13,16 +13,19 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 
 import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.adapters.ExpenseSheetListAdapter;
 import com.tarunisrani.dailykharcha.adapters.GroupListAdapter;
+import com.tarunisrani.dailykharcha.customui.AddGroupDialog;
+import com.tarunisrani.dailykharcha.customui.UserListDialog;
 import com.tarunisrani.dailykharcha.dbhelper.ExpenseSheetDataSource;
 import com.tarunisrani.dailykharcha.dbhelper.GroupDataSource;
+import com.tarunisrani.dailykharcha.listeners.AddGroupListener;
+import com.tarunisrani.dailykharcha.listeners.AddGroupOnServerListener;
 import com.tarunisrani.dailykharcha.listeners.ExpenseSheetListClickListener;
 import com.tarunisrani.dailykharcha.listeners.SelectedUserListListener;
 import com.tarunisrani.dailykharcha.listeners.UserListGenerationListener;
@@ -79,9 +82,9 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
         sheetListAdapter = new ExpenseSheetListAdapter(this);
 
-        ImageView button_add_new_expense_sheet = (ImageView) findViewById(R.id.button_add_new_expense_sheet);
-        ImageView button_share_all_expense_sheet = (ImageView) findViewById(R.id.button_share_all_expense_sheet);
-        Button button_logout = (Button) findViewById(R.id.button_logout);
+        LinearLayout button_add_new_expense_sheet = (LinearLayout) findViewById(R.id.button_add_new_expense_sheet);
+        LinearLayout button_share_all_expense_sheet = (LinearLayout) findViewById(R.id.button_share_all_expense_sheet);
+        LinearLayout button_logout = (LinearLayout) findViewById(R.id.button_logout);
 
         group_list_spinner = (Spinner) findViewById(R.id.group_list_spinner);
         group_list_spinner.setOnItemSelectedListener(this);
@@ -108,6 +111,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     private void prepareListOfGroups(){
         GroupDataSource groupDataSource = new GroupDataSource(this);
         ArrayList<Group> groups = groupDataSource.getGroupItems();
+        groups.add(new Group());
 
 //        ArrayAdapter<String> group_list_adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, android.R.id.text1);
 
@@ -154,7 +158,6 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
                 exp.printStackTrace();
             }
         }
-
     }
 
     private boolean addSheetInList(Sheet sheet){
@@ -380,6 +383,28 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         return count>0;
     }
 
+    private void performAddGroupOperation(){
+        AddGroupDialog dialog = new AddGroupDialog(this, new AddGroupListener() {
+
+            @Override
+            public void onGroupAdded(Group group) {
+                if(AppUtils.getService().createGroupEntryInDB(group)){
+                    user_list_progressbar.setVisibility(View.VISIBLE);
+                    Log.d("Add Group", "Group created successfully.");
+                    AppUtils.getService().createGroupEntryOnServer(group, new AddGroupOnServerListener() {
+                        @Override
+                        public void onGroupAddedOnServer() {
+                            user_list_progressbar.setVisibility(View.GONE);
+                            prepareListOfGroups();
+                        }
+                    });
+                }
+            }
+        });
+        dialog.setTitle("Enter Group Detail");
+        dialog.show();
+    }
+
     @Override
     public void onBackPressed() {
         if(!clearAllEditEnabledItems()){
@@ -412,10 +437,15 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        Group selected_group = ((GroupListAdapter)parent.getAdapter()).getItem(position);
-        selectedGroupid = selected_group.getGroup_id();
-        new SharedPreferrenceUtil().setSelectedGroup(this, selectedGroupid);
-        fetchSheetList();
+        if(position == ((GroupListAdapter)parent.getAdapter()).getItemCount()-1){
+            performAddGroupOperation();
+            group_list_spinner.setSelection(((GroupListAdapter)parent.getAdapter()).getIDPosition(selectedGroupid));
+        }else{
+            Group selected_group = ((GroupListAdapter)parent.getAdapter()).getItem(position);
+            selectedGroupid = selected_group.getGroup_id();
+            new SharedPreferrenceUtil().setSelectedGroup(this, selectedGroupid);
+            fetchSheetList();
+        }
     }
 
     @Override

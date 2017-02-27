@@ -9,6 +9,7 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.listeners.ServerSignupListener;
 import com.tarunisrani.dailykharcha.network.LoginSignupNetworkCall;
@@ -55,6 +56,9 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
 
                 @Override
                 public void onSignupCompleted(FirebaseUser user) {
+                    UserProfileChangeRequest userProfileChangeRequest = new UserProfileChangeRequest.Builder().setDisplayName(name).build();
+                    user.updateProfile(userProfileChangeRequest);
+
                     progressbar.setVisibility(View.GONE);
                     AppUtils.getService().initializeFirebase(user.getUid());
                     AppUtils.getService().storeUserDetails(name, email, user.getUid());

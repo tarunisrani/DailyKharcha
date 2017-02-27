@@ -4,9 +4,6 @@ import android.content.Context;
 
 import com.tarunisrani.dailykharcha.android.BackendService;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Created by tarunisrani on 2/14/17.
  */
@@ -26,7 +23,7 @@ public class AppUtils {
     public static String generateUniqueKey(Context context){
         long currentTimeMillis = System.currentTimeMillis();
         String timeStamp = String.valueOf(currentTimeMillis);
-        String user = new SharedPreferrenceUtil().fetchUser(context);
+        String user = new SharedPreferrenceUtil().fetchUserID(context);
         String key = user + "_" + timeStamp;
         return key;
     }
@@ -37,17 +34,9 @@ public class AppUtils {
 //        byte[] data = key.getBytes("UTF-8");
 //        String base64 = Base64.encodeToString(data, Base64.DEFAULT);
 //        String response = Jwts.builder().setPayload(jsonData).signWith(SignatureAlgorithm.HS256, base64).compact();
-        Map<String, Object> authPayload = new HashMap<String, Object>();
-        authPayload.put("uid", "1");
-        authPayload.put("some", "arbitrary");
-        authPayload.put("data", "here");
 
-        TokenOptions tokenOptions = new TokenOptions();
-        tokenOptions.setAdmin(true);
 
-        TokenGenerator tokenGenerator = new TokenGenerator("<YOUR_FIREBASE_SECRET>");
-        String token = tokenGenerator.createToken(authPayload, tokenOptions);
-        return token;
+        return "";
     }
 
 }

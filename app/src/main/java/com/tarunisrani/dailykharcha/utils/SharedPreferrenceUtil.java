@@ -8,14 +8,24 @@ import android.content.SharedPreferences;
  */
 
 public class SharedPreferrenceUtil {
-    public void setUser(Context context, String uid){
+    public void setUserID(Context context, String uid){
         SharedPreferences sharedPreferences = context.getSharedPreferences("USER", Context.MODE_PRIVATE);
         sharedPreferences.edit().putString("UID", uid).commit();
     }
 
-    public String fetchUser(Context context){
+    public String fetchUserID(Context context){
         SharedPreferences sharedPreferences = context.getSharedPreferences("USER", Context.MODE_PRIVATE);
         return sharedPreferences.getString("UID", "");
+    }
+
+    public void setUserName(Context context, String uid){
+        SharedPreferences sharedPreferences = context.getSharedPreferences("USER", Context.MODE_PRIVATE);
+        sharedPreferences.edit().putString("NAME", uid).commit();
+    }
+
+    public String fetchUserName(Context context){
+        SharedPreferences sharedPreferences = context.getSharedPreferences("USER", Context.MODE_PRIVATE);
+        return sharedPreferences.getString("NAME", "");
     }
 
     public void setSelectedGroup(Context context, String groupid){

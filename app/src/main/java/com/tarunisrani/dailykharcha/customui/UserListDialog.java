@@ -1,4 +1,4 @@
-package com.tarunisrani.dailykharcha.android;
+package com.tarunisrani.dailykharcha.customui;
 
 import android.app.Dialog;
 import android.content.Context;

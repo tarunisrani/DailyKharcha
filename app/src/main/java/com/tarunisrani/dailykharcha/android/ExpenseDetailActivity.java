@@ -12,7 +12,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.tarunisrani.dailykharcha.R;
@@ -25,6 +25,8 @@ import com.tarunisrani.dailykharcha.model.Sheet;
 import com.tarunisrani.dailykharcha.utils.AppUtils;
 
 import java.util.ArrayList;
+
+import static com.tarunisrani.dailykharcha.R.id.expense_detail_sync_button;
 
 public class ExpenseDetailActivity extends AppCompatActivity implements View.OnClickListener, ExpenseListClickListener {
 
@@ -68,9 +70,9 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
 
         expenseListAdapter = new ExpenseListAdapter(this);
 
-        ImageView button_add_expense_item = (ImageView) findViewById(R.id.button_add_expense_item);
-        ImageView expense_detail_sync_button = (ImageView) findViewById(R.id.expense_detail_sync_button);
-        ImageView button_submit_expense_sheet = (ImageView) findViewById(R.id.button_submit_expense_sheet);
+        LinearLayout button_add_expense_item = (LinearLayout) findViewById(R.id.button_add_expense_item);
+//        ImageView expense_detail_sync_button = (ImageView) findViewById(R.id.expense_detail_sync_button);
+        LinearLayout button_submit_expense_sheet = (LinearLayout) findViewById(R.id.button_submit_expense_sheet);
         total_amount_value = (TextView) findViewById(R.id.total_amount_value);
         TextView expense_detail_sheet_name = (TextView) findViewById(R.id.expense_detail_sheet_name);
         RecyclerView expenses_sheet_add_item_view = (RecyclerView) findViewById(R.id.expenses_sheet_add_item_view);
@@ -85,7 +87,7 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
         linearLayout.setOrientation(LinearLayoutManager.VERTICAL);
         expenses_sheet_add_item_view.setLayoutManager(linearLayout);
         button_add_expense_item.setOnClickListener(this);
-        expense_detail_sync_button.setOnClickListener(this);
+//        expense_detail_sync_button.setOnClickListener(this);
         button_submit_expense_sheet.setOnClickListener(this);
 
         expenseListAdapter.setClickListener(this);
@@ -254,7 +256,7 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
             case R.id.button_submit_expense_sheet:
                 performSubmitOperation();
                 break;
-            case R.id.expense_detail_sync_button:
+            case expense_detail_sync_button:
 //                performSyncOperation(true);
                 break;
         }
