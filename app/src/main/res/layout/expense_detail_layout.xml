@@ -22,7 +22,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_gravity="center_horizontal"
-            android:background="@drawable/investment_goal_item_bg_hollow"
+            android:background="@drawable/button_bg_filled_white"
             android:padding="10dp"
             android:layout_marginBottom="10dp">
             <TextView
@@ -91,12 +91,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:background="@drawable/investment_goal_item_bg_hollow"
+            android:background="@drawable/button_bg_filled_white"
             android:padding="10dp">
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/plus"/>
+                android:src="@drawable/sheet_add"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -114,7 +114,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_alignParentRight="true"
-            android:background="@drawable/investment_goal_item_bg_hollow"
+            android:background="@drawable/button_bg_filled_white"
             android:padding="10dp">
             <TextView
                 android:layout_width="wrap_content"
@@ -126,7 +126,7 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/checkmark"/>
+                android:src="@drawable/sheet_submit"/>
         </LinearLayout>
 
 

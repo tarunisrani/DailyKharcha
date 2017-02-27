@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_alignParentRight="true"
-            android:background="@drawable/investment_goal_item_bg_hollow"
+            android:background="@drawable/button_bg_filled_white"
             android:padding="10dp">
             <TextView
                 android:layout_width="wrap_content"
@@ -50,7 +50,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginLeft="5dp"
-            android:layout_gravity="center"></Spinner>
+            android:layout_gravity="center"
+            android:background="@drawable/button_bg_hollow"></Spinner>
 
 
     </LinearLayout>
@@ -64,12 +65,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:background="@drawable/investment_goal_item_bg_hollow"
+            android:background="@drawable/button_bg_filled_white"
             android:padding="10dp">
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/plus"/>
+                android:src="@drawable/sheet_add"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -86,7 +87,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_alignParentRight="true"
-            android:background="@drawable/investment_goal_item_bg_hollow"
+            android:background="@drawable/button_bg_filled_white"
             android:padding="10dp">
             <TextView
                 android:layout_width="wrap_content"
@@ -111,7 +112,7 @@
             android:id="@+id/expenses_sheet_list_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/investment_goal_item_bg_hollow"
+            android:background="@drawable/button_bg_hollow"
             android:layout_marginTop="10dp"/>
         <ProgressBar
             android:id="@+id/user_list_progressbar"

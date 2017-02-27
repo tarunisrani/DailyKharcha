@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.tarunisrani.dailykharcha.R;
@@ -62,10 +63,12 @@ public class GroupListAdapter extends ArrayAdapter {
             TextView group_list_owner_name = (TextView) layout.findViewById(R.id.group_list_owner_name);
             TextView group_list_uid = (TextView) layout.findViewById(R.id.group_list_uid);
 
+
             Group group = mList.get(position);
             group_list_name.setText(group.getGroup_name());
             group_list_owner_name.setText(group.getOwner_name());
             group_list_uid.setText(group.getOwner_id());
+
 
 
             return layout;
@@ -84,12 +87,18 @@ public class GroupListAdapter extends ArrayAdapter {
         TextView group_list_name = (TextView) layout.findViewById(R.id.group_list_name);
         TextView group_list_owner_name = (TextView) layout.findViewById(R.id.group_list_owner_name);
         TextView group_list_uid = (TextView) layout.findViewById(R.id.group_list_uid);
+        ImageView spinner_drop_icon = (ImageView) layout.findViewById(R.id.spinner_drop_icon);
+        View divider_view = (View) layout.findViewById(R.id.divider_view);
+
 
         Group group = mList.get(position);
         group_list_name.setText(group.getGroup_name());
         group_list_owner_name.setText(group.getOwner_name());
         group_list_uid.setVisibility(View.GONE);
 //        group_list_uid.setText(group.getOwner_id());
+        spinner_drop_icon.setVisibility(View.VISIBLE);
+        divider_view.setVisibility(View.GONE);
+
 
         return layout;
     }

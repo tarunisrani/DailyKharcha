@@ -26,7 +26,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:background="@drawable/investment_goal_item_bg_hollow"
+            android:background="@drawable/button_bg_hollow"
             android:padding="10dp">
             <ImageView
                 android:layout_width="wrap_content"
@@ -63,7 +63,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_alignParentRight="true"
-            android:background="@drawable/investment_goal_item_bg_hollow"
+            android:background="@drawable/button_bg_hollow"
             android:padding="10dp">
             <ImageView
                 android:layout_width="wrap_content"
@@ -84,7 +84,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_alignParentRight="true"
-            android:background="@drawable/investment_goal_item_bg_hollow"
+            android:background="@drawable/button_bg_hollow"
             android:padding="10dp"
             android:visibility="gone">
             <ImageView

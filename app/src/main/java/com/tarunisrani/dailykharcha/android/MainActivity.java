@@ -92,8 +92,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onResume() {
-        super.onResume();
         performServiceStartOperation();
+        super.onResume();
     }
 
     @Override
@@ -110,13 +110,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onDestroy() {
-        if(AppUtils.getService()!=null && isServiceRunning(AppUtils.getService().getClass())) {
+        /*if(AppUtils.getService()!=null && isServiceRunning(AppUtils.getService().getClass())) {
             try {
                 unbindService(mConnection);
             }catch (IllegalArgumentException exp){
                 exp.printStackTrace();
             }
-        }
+        }*/
         super.onDestroy();
     }
 

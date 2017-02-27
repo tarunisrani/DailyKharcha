@@ -35,6 +35,7 @@ import com.tarunisrani.dailykharcha.utils.SharedPreferrenceUtil;
 import org.json.JSONException;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Created by tarunisrani on 2/13/17.
@@ -762,7 +763,8 @@ public class BackendService extends Service {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if(dataSnapshot!=null && dataSnapshot.getValue()!=null){
-                    fetchUserList(reference, dataSnapshot.getChildrenCount(), listener);
+//                    fetchUserList(reference, dataSnapshot.getChildrenCount(), listener);
+                    fetchUserList(dataSnapshot, listener);
                 }
             }
 
@@ -813,6 +815,22 @@ public class BackendService extends Service {
 
             }
         });
+    }
+
+    private void fetchUserList(DataSnapshot dataSnapshot, final UserListGenerationListener listener){
+        final String user_id = new SharedPreferrenceUtil().fetchUserID(this);
+        final ArrayList<UserDetails> userDetailsArrayList = new ArrayList<>();
+
+        Iterator<DataSnapshot> iterator = dataSnapshot.getChildren().iterator();
+        while (iterator.hasNext()){
+            UserDetails userDetails = iterator.next().getValue(UserDetails.class);
+            if(!user_id.equalsIgnoreCase(userDetails.getUid())) {
+                userDetailsArrayList.add(userDetails);
+            }
+        }
+
+        listener.onListGenerated(userDetailsArrayList);
+
     }
 
     @Override
