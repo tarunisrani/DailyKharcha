@@ -1,9 +1,12 @@
 package com.tarunisrani.dailykharcha.android;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -22,7 +25,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private static final String TAG = "MainActivity";
 
     private EditText email_input;
+    private TextInputLayout email_input_wrapper;
     private EditText password_input;
+    private TextInputLayout password_input_wrapper;
     private ProgressBar progressbar;
 
 
@@ -46,8 +51,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         Button button_submit = (Button) findViewById(R.id.login_button_submit);
         Button button_signup = (Button) findViewById(R.id.signup_button);
         email_input = (EditText) findViewById(R.id.login_email_input);
+        email_input_wrapper = (TextInputLayout) findViewById(R.id.login_email_input_wrapper);
         password_input = (EditText) findViewById(R.id.login_password_input);
+        password_input_wrapper = (TextInputLayout) findViewById(R.id.login_password_input_wrapper);
         progressbar = (ProgressBar) findViewById(R.id.login_progressbar);
+
+
+        email_input_wrapper.setHint("Email");
+        password_input_wrapper.setHint("Password");
 
         button_submit.setOnClickListener(this);
         button_signup.setOnClickListener(this);
@@ -57,12 +68,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void performSubmitOperation(){
         String email = email_input.getText().toString();
         String password = password_input.getText().toString();
-        progressbar.setVisibility(View.VISIBLE);
+
         if(!email.isEmpty() && !password.isEmpty()){
 //            AppUtils.getService().performSignUp(email, password);
 //            AppUtils.getService().performSignIn(email, password);
 //            AppUtils.getService().performSignUpByUID();
-
+            progressbar.setVisibility(View.VISIBLE);
             new LoginSignupNetworkCall().loginUser(email, password, new ServerLoginListener(){
 
                 @Override
@@ -98,6 +109,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void performScreenChangeOperation(){
         startActivity(new Intent(this, SignUpActivity.class));
         finish();
+    }
+
+    private void hideKeyboard() {
+        View view = getCurrentFocus();
+        if (view != null) {
+            ((InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE)).
+                    hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        }
     }
 
 

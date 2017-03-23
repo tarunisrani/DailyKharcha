@@ -46,12 +46,12 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
         final String name = name_input.getText().toString();
         final String email = email_input.getText().toString();
         String password = password_input.getText().toString();
-        progressbar.setVisibility(View.VISIBLE);
+
         if(!name.isEmpty() && !email.isEmpty() && !password.isEmpty()){
 //            AppUtils.getService().performSignUp(email, password);
 //            AppUtils.getService().performSignIn(email, password);
 //            AppUtils.getService().performSignUpByUID();
-
+            progressbar.setVisibility(View.VISIBLE);
             new LoginSignupNetworkCall().createNewUserInFirebase(this, name, email, password, new ServerSignupListener(){
 
                 @Override
@@ -90,7 +90,7 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void performScreenChangeOperation(){
-        startActivity(new Intent(this, SignUpActivity.class));
+        startActivity(new Intent(this, LoginActivity.class));
         finish();
     }
 

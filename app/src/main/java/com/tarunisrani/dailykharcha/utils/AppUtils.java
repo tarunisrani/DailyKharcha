@@ -1,8 +1,20 @@
 package com.tarunisrani.dailykharcha.utils;
 
+import android.app.ActivityManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
+import android.provider.Settings;
+import android.support.v7.app.NotificationCompat;
 
+import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.android.BackendService;
+import com.tarunisrani.dailykharcha.android.MainActivity;
+import com.tarunisrani.dailykharcha.listeners.ServiceConnectionListener;
+import com.tarunisrani.dailykharcha.model.Group;
+
+import static android.content.Context.NOTIFICATION_SERVICE;
 
 /**
  * Created by tarunisrani on 2/14/17.
@@ -10,7 +22,7 @@ import com.tarunisrani.dailykharcha.android.BackendService;
 
 public class AppUtils {
     private static BackendService mService = null;
-
+    private static ServiceConnectionListener mListener;
 
     public static BackendService getService() {
         return mService;
@@ -38,5 +50,71 @@ public class AppUtils {
 
         return "";
     }
+
+    public static void showNotification(Context context, Group group){
+
+        String title = "New group shared with you...";
+        String content = group.getOwner_name()+" shared group "+group.getGroup_name()+" with you.";
+
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.putExtra(AppConstant.INTENT_KEY_GROUP, group.getGroup_id());
+// use System.currentTimeMillis() to have a unique ID for the pending intent
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, (int) System.currentTimeMillis(), intent, 0);
+
+        android.support.v4.app.NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(context)
+                        .setSmallIcon(R.mipmap.dailykharcha_app_icon)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setSound(Settings.System.DEFAULT_NOTIFICATION_URI)
+                        .setContentIntent(pendingIntent)
+                        .setAutoCancel(true);
+
+        NotificationManager notificationManager =
+                (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+
+        notificationManager.notify(0, mBuilder.build());
+
+
+    }
+
+    public static boolean isServiceRunning(Context context, Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void performServiceStartOperation(Context context, ServiceConnectionListener listener){
+
+        mListener = listener;
+
+        if(!isServiceRunning(context, BackendService.class)){
+            context.startService(new Intent(context, BackendService.class));
+        }
+
+        Intent intent = new Intent(context, BackendService.class);
+        context.bindService(intent, mConnection,
+                Context.BIND_AUTO_CREATE);
+    }
+
+    public static void performUnbindService(Context context){
+        try {
+            context.unbindService(mConnection);
+        }catch (IllegalArgumentException exp){
+            exp.printStackTrace();
+        }
+    }
+
+    private static ServiceConnetionClass mConnection = new ServiceConnetionClass(new ServiceConnectionListener() {
+        @Override
+        public void onServiceBind(BackendService service) {
+            mService = service;
+            mListener.onServiceBind(service);
+        }
+    });
 
 }

@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    buildToolsVersion '25.0.0'
 
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
@@ -41,6 +41,7 @@ dependencies {
     compile 'com.github.PhilJay:MPAndroidChart:v3.0.1'
     compile 'com.google.firebase:firebase-auth:9.6.1'
     compile 'com.google.firebase:firebase-core:9.6.1'
+    compile 'com.google.firebase:firebase-crash:9.6.1'
     compile 'com.google.firebase:firebase-database:9.6.1'
     compile 'com.android.volley:volley:1.0.0'
     compile 'io.jsonwebtoken:jjwt:0.6.0'

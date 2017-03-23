@@ -8,13 +8,20 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:orientation="vertical"
+    android:background="#e3e3e3"
     tools:context=".android.LoginActivity">
-    <Button
-        android:id="@+id/signup_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:text="Signup"/>
+        <Button
+            android:id="@+id/signup_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:paddingLeft="25dp"
+            android:paddingRight="25dp"
+            android:background="@drawable/button_bg_filled_blue"
+            android:layout_gravity="center_vertical"
+            android:text="Signup"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -27,36 +34,54 @@
             android:text="Email is sent to your address, verify email befor login."
             android:textColor="@android:color/holo_red_light"
             android:layout_marginBottom="5dp"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Email"/>
-        <EditText
-            android:id="@+id/login_email_input"
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/login_email_input_wrapper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="35dp"
-            android:inputType="textEmailAddress"
-            android:background="@android:color/holo_purple"
-            android:layout_marginBottom="20dp"/>
+            android:hint="Email">
+            <!--<TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Email"/>-->
+            <EditText
+                android:id="@+id/login_email_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="35dp"
+                android:inputType="textEmailAddress"
+                android:layout_marginBottom="20dp"/>
+        </android.support.design.widget.TextInputLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Password"/>
-        <EditText
-            android:id="@+id/login_password_input"
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/login_password_input_wrapper"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="35dp"
-            android:inputType="textPassword"
-            android:background="@android:color/holo_purple"
-            android:layout_marginBottom="20dp"/>
+            android:hint="Password">
+            <!--<TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Password"/>-->
+            <EditText
+                android:id="@+id/login_password_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="35dp"
+                android:inputType="textPassword"
+                android:layout_marginBottom="20dp"/>
+        </android.support.design.widget.TextInputLayout>
+
+
 
         <Button
             android:id="@+id/login_button_submit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:paddingLeft="25dp"
+            android:paddingRight="25dp"
+            android:background="@drawable/button_bg_filled_green"
             android:layout_gravity="center"
             android:text="Submit"/>
     </LinearLayout>

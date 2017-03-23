@@ -25,6 +25,8 @@ public class UserListDialog extends Dialog implements View.OnClickListener, User
     private RecyclerView user_list_list_view;
     private UserListAdapter adapter;
     private SelectedUserListListener mListListener;
+    private TextView label_no_user;
+    private TextView button_cancel;
 
     public UserListDialog(Context context, SelectedUserListListener listListener) {
         super(context);
@@ -46,7 +48,8 @@ public class UserListDialog extends Dialog implements View.OnClickListener, User
 
         user_list_list_view = (RecyclerView) findViewById(R.id.user_list_list_view);
         TextView button_ok = (TextView) findViewById(R.id.user_list_button_ok);
-        TextView button_cancel = (TextView) findViewById(R.id.user_list_button_cancel);
+        button_cancel = (TextView) findViewById(R.id.user_list_button_cancel);
+        label_no_user = (TextView) findViewById(R.id.label_no_user);
 
         button_ok.setOnClickListener(this);
         button_cancel.setOnClickListener(this);
@@ -57,15 +60,20 @@ public class UserListDialog extends Dialog implements View.OnClickListener, User
 
     public void showUserList(ArrayList<UserDetails> userList){
 
-
-        adapter.setUserDetailList(userList);
-        adapter.setClickListener(this);
-        user_list_list_view.setAdapter(adapter);
-        user_list_list_view.setHasFixedSize(true);
-        LinearLayoutManager linearLayout =new LinearLayoutManager(getContext());
-        linearLayout.setOrientation(LinearLayoutManager.VERTICAL);
-        user_list_list_view.setLayoutManager(linearLayout);
-        adapter.notifyDataSetChanged();
+        if(userList.size() >0){
+            label_no_user.setVisibility(View.GONE);
+            user_list_list_view.setVisibility(View.VISIBLE);
+            adapter.setUserDetailList(userList);
+            adapter.setClickListener(this);
+            user_list_list_view.setAdapter(adapter);
+            user_list_list_view.setHasFixedSize(true);
+            LinearLayoutManager linearLayout =new LinearLayoutManager(getContext());
+            linearLayout.setOrientation(LinearLayoutManager.VERTICAL);
+            user_list_list_view.setLayoutManager(linearLayout);
+            adapter.notifyDataSetChanged();
+        }else{
+            button_cancel.setVisibility(View.GONE);
+        }
     }
 
     private void performOkOperation(){
@@ -77,12 +85,11 @@ public class UserListDialog extends Dialog implements View.OnClickListener, User
             }
         }
 
-        if(mListListener!=null){
+        if(mListListener!=null && userDetailsArrayList.size()>0){
             mListListener.onSharedUserListGenerated(userDetailsArrayList);
         }
 
         dismiss();
-
     }
 
     private void performCancelOperation(){

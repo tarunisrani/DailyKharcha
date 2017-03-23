@@ -104,7 +104,7 @@ public class GroupListAdapter extends ArrayAdapter {
     }
 
     public int getIDPosition(String uid){
-        for(int index=0;index<mList.size();index++){
+        for(int index=0;index<mList.size()-1;index++){
             if(mList.get(index).getGroup_id().equalsIgnoreCase(uid)){
                 return index;
             }

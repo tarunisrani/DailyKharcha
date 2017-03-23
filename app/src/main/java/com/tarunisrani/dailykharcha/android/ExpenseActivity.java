@@ -10,7 +10,11 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
@@ -28,6 +32,7 @@ import com.tarunisrani.dailykharcha.listeners.AddGroupListener;
 import com.tarunisrani.dailykharcha.listeners.AddGroupOnServerListener;
 import com.tarunisrani.dailykharcha.listeners.ExpenseSheetListClickListener;
 import com.tarunisrani.dailykharcha.listeners.SelectedUserListListener;
+import com.tarunisrani.dailykharcha.listeners.ServiceConnectionListener;
 import com.tarunisrani.dailykharcha.listeners.UserListGenerationListener;
 import com.tarunisrani.dailykharcha.model.Group;
 import com.tarunisrani.dailykharcha.model.Sheet;
@@ -41,10 +46,10 @@ import org.json.JSONException;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import static com.tarunisrani.dailykharcha.R.id.button_logout;
+import static com.tarunisrani.dailykharcha.R.id.button_add_new_expense_sheet;
 import static com.tarunisrani.dailykharcha.utils.AppUtils.getService;
 
-public class ExpenseActivity extends AppCompatActivity implements View.OnClickListener, ExpenseSheetListClickListener, AdapterView.OnItemSelectedListener {
+public class ExpenseActivity extends AppCompatActivity implements View.OnClickListener, ExpenseSheetListClickListener, AdapterView.OnItemSelectedListener, ServiceConnectionListener {
 
     private RecyclerView expenses_sheet_list_view;
     private ExpenseSheetListAdapter sheetListAdapter;
@@ -54,6 +59,8 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     private String selectedGroupid;
     private Spinner group_list_spinner;
     private ProgressBar user_list_progressbar;
+    private LinearLayout button_share_all_expense_sheet;
+    private LinearLayout button_remove_group;
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -79,13 +86,17 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.expense_layout);
 
+
+
         selectedGroupid = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
 
         sheetListAdapter = new ExpenseSheetListAdapter(this);
 
+
+
         LinearLayout button_add_new_expense_sheet = (LinearLayout) findViewById(R.id.button_add_new_expense_sheet);
-        LinearLayout button_share_all_expense_sheet = (LinearLayout) findViewById(R.id.button_share_all_expense_sheet);
-        LinearLayout button_logout = (LinearLayout) findViewById(R.id.button_logout);
+        button_share_all_expense_sheet = (LinearLayout) findViewById(R.id.button_share_all_expense_sheet);
+        button_remove_group = (LinearLayout) findViewById(R.id.button_remove_group);
 
         group_list_spinner = (Spinner) findViewById(R.id.group_list_spinner);
         group_list_spinner.setOnItemSelectedListener(this);
@@ -104,7 +115,16 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         expenses_sheet_list_view.setLayoutManager(linearLayout);
         button_add_new_expense_sheet.setOnClickListener(this);
         button_share_all_expense_sheet.setOnClickListener(this);
-        button_logout.setOnClickListener(this);
+        button_remove_group.setOnClickListener(this);
+
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.expense_toolbar);
+        setSupportActionBar(mToolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setIcon(R.mipmap.dailykharcha_app_icon);
+
+
 
         fetchSheetList();
     }
@@ -123,7 +143,9 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
 
         int index = groupListAdapter.getIDPosition(selected_group_id);
-        group_list_spinner.setSelection(index!=-1?index:0);
+        if(groups.size()>1) {
+            group_list_spinner.setSelection(index != -1 ? index : 0);
+        }
 
     }
 
@@ -271,8 +293,17 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
                 showUserListDialog(userDetailses);
             }
         });
+    }
 
-
+    private void performRemoveGroupOperation(){
+        GroupDataSource groupDataSource = new GroupDataSource(this);
+        Group group = groupDataSource.getGroup(selectedGroupid);
+        if(group.getOwner_id().equalsIgnoreCase(new SharedPreferrenceUtil().fetchUserID(this))){
+            if(AppUtils.getService().removeGroupFromDB(group)){
+                AppUtils.getService().removeGroupFromServer(group);
+                prepareListOfGroups();
+            }
+        }
     }
 
     private void showUserListDialog(ArrayList<UserDetails> userDetailsArrayList){
@@ -280,6 +311,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         UserListDialog dialog = new UserListDialog(this, new SelectedUserListListener() {
             @Override
             public void onSharedUserListGenerated(ArrayList<UserDetails> userDetailses) {
+                performDBEntryForSharedUser(userDetailses);
                 performServerEntryForSharedUser(userDetailses);
             }
         });
@@ -291,8 +323,28 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     private void performServerEntryForSharedUser(ArrayList<UserDetails> userDetailses){
         GroupDataSource groupDataSource = new GroupDataSource(this);
         Group group = groupDataSource.getGroup(selectedGroupid);
+        group.setShared(true);
         AppUtils.getService().createSharedGroupEntryOnServer(userDetailses, group);
     }
+
+    private void performDBEntryForSharedUser(ArrayList<UserDetails> userDetailses){
+        GroupDataSource groupDataSource = new GroupDataSource(this);
+        Group group = groupDataSource.getGroup(selectedGroupid);
+        group.setShared(true);
+        group.setSharedwith(generateUIDList(userDetailses));
+//        AppUtils.getService().createSharedGroupEntryOnServer(userDetailses, group);
+        groupDataSource.updateGroupEntry(group);
+    }
+
+
+    private ArrayList<String> generateUIDList(ArrayList<UserDetails> userDetailses){
+        ArrayList<String> list = new ArrayList<>();
+        for(UserDetails userDetails:userDetailses){
+            list.add(userDetails.getUid());
+        }
+        return list;
+    }
+
 
     private void performAnalysisOperation(int position){
         Sheet sheet = sheetListAdapter.getItem(position);
@@ -304,15 +356,14 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     public void onClick(View view) {
         switch(view.getId()){
-            case R.id.button_add_new_expense_sheet:
+            case button_add_new_expense_sheet:
                 addNewSheetInList();
                 break;
             case R.id.button_share_all_expense_sheet:
                 performShareOperation();
                 break;
-            case button_logout:
-                AppUtils.getService().performSignOut();
-                openLoginScreen();
+            case R.id.button_remove_group:
+                performRemoveGroupOperation();
                 break;
         }
     }
@@ -379,8 +430,8 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         AddGroupDialog dialog = new AddGroupDialog(this, new AddGroupListener() {
 
             @Override
-            public void onGroupAdded(Group group) {
-                if(AppUtils.getService().createGroupEntryInDB(group)){
+            public void onGroupAdded(final Group group) {
+                if(AppUtils.getService().createGroupEntryInDBIfNotExist(group)){
                     user_list_progressbar.setVisibility(View.VISIBLE);
                     Log.d("Add Group", "Group created successfully.");
                     AppUtils.getService().createGroupEntryOnServer(group, new AddGroupOnServerListener() {
@@ -388,6 +439,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
                         public void onGroupAddedOnServer() {
                             user_list_progressbar.setVisibility(View.GONE);
                             prepareListOfGroups();
+                            AppUtils.getService().startGroupRelatedListeners(group);
                         }
                     });
                 }
@@ -415,6 +467,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onResume() {
         super.onResume();
+        AppUtils.performServiceStartOperation(this, this);
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BackendService.FILTER_SHEET);
         intentFilter.addAction(BackendService.FILTER_GROUP);
@@ -437,11 +490,60 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
             selectedGroupid = selected_group.getGroup_id();
             new SharedPreferrenceUtil().setSelectedGroup(this, selectedGroupid);
             fetchSheetList();
+
+            if(!selected_group.getOwner_id().equalsIgnoreCase(new SharedPreferrenceUtil().fetchUserID(this))){
+                button_share_all_expense_sheet.setVisibility(View.GONE);
+                button_remove_group.setVisibility(View.GONE);
+            }else{
+                button_share_all_expense_sheet.setVisibility(View.VISIBLE);
+                button_remove_group.setVisibility(View.VISIBLE);
+            }
+
         }
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        AppUtils.performUnbindService(this);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.option_toolbar, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                // User chose the "Settings" item, show the app settings UI...
+                return true;
+
+            case R.id.action_logout:
+                // User chose the "Favorite" action, mark the current item
+                // as a favorite...
+                AppUtils.getService().performSignOut();
+                openLoginScreen();
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+
+        }
+    }
+
+    @Override
+    public void onServiceBind(BackendService service) {
 
     }
 }
