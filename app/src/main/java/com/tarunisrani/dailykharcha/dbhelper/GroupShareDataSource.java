@@ -68,6 +68,21 @@ public class GroupShareDataSource {
         return insertId != -1 ;
     }
 
+    public boolean removeGroupShareEntry(GroupShare groupShare){
+        SQLiteDatabase database = databaseHelper.getWritableDatabase();
+        long count = database.delete(TABLE_NAME, COLUMN_GROUP_ID + " = " + DatabaseUtils.sqlEscapeString(groupShare.getGroup_id())
+                        + " and " + COLUMN_USER_ID + " = " + DatabaseUtils.sqlEscapeString(groupShare.getUser_id()), null);
+        database.close();
+        return count > 0 ;
+    }
+
+    public boolean removeGroupShareEntry(String group_id){
+        SQLiteDatabase database = databaseHelper.getWritableDatabase();
+        long count = database.delete(TABLE_NAME, COLUMN_GROUP_ID + " = " + DatabaseUtils.sqlEscapeString(group_id), null);
+        database.close();
+        return count > 0 ;
+    }
+
     public boolean createGroupShareEntry(GroupShare groupShare, SQLiteDatabase database){
 //        SQLiteDatabase database = databaseHelper.getWritableDatabase();
         ContentValues values = new ContentValues();

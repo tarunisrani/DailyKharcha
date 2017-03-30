@@ -17,7 +17,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 
@@ -25,13 +25,11 @@ import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.adapters.ExpenseSheetListAdapter;
 import com.tarunisrani.dailykharcha.adapters.GroupListAdapter;
 import com.tarunisrani.dailykharcha.customui.AddGroupDialog;
-import com.tarunisrani.dailykharcha.customui.UserListDialog;
 import com.tarunisrani.dailykharcha.dbhelper.ExpenseSheetDataSource;
 import com.tarunisrani.dailykharcha.dbhelper.GroupDataSource;
 import com.tarunisrani.dailykharcha.listeners.AddGroupListener;
 import com.tarunisrani.dailykharcha.listeners.AddGroupOnServerListener;
 import com.tarunisrani.dailykharcha.listeners.ExpenseSheetListClickListener;
-import com.tarunisrani.dailykharcha.listeners.SelectedUserListListener;
 import com.tarunisrani.dailykharcha.listeners.ServiceConnectionListener;
 import com.tarunisrani.dailykharcha.listeners.UserListGenerationListener;
 import com.tarunisrani.dailykharcha.model.Group;
@@ -47,6 +45,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 import static com.tarunisrani.dailykharcha.R.id.button_add_new_expense_sheet;
+import static com.tarunisrani.dailykharcha.utils.AppConstant.INTENT_KEY_SHARED_USER_LIST;
+import static com.tarunisrani.dailykharcha.utils.AppConstant.INTENT_KEY_SHEET;
+import static com.tarunisrani.dailykharcha.utils.AppConstant.INTENT_KEY_USER_DETAIL_LIST;
 import static com.tarunisrani.dailykharcha.utils.AppUtils.getService;
 
 public class ExpenseActivity extends AppCompatActivity implements View.OnClickListener, ExpenseSheetListClickListener, AdapterView.OnItemSelectedListener, ServiceConnectionListener {
@@ -59,15 +60,15 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     private String selectedGroupid;
     private Spinner group_list_spinner;
     private ProgressBar user_list_progressbar;
-    private LinearLayout button_share_all_expense_sheet;
-    private LinearLayout button_remove_group;
+    private ImageView button_share_all_expense_sheet;
+    private ImageView button_remove_group;
 
     private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
 
             if(intent.getAction().equalsIgnoreCase(BackendService.FILTER_SHEET)){
-                Sheet sheet = intent.getParcelableExtra(AppConstant.INTENT_KEY_SHEET);
+                Sheet sheet = intent.getParcelableExtra(INTENT_KEY_SHEET);
                 String action = intent.getStringExtra(AppConstant.INTENT_KEY_ACTION);
                 Log.e("Sheet "+action, sheet.toString());
                 fetchSheetList();
@@ -86,17 +87,12 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.expense_layout);
 
-
-
         selectedGroupid = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
-
         sheetListAdapter = new ExpenseSheetListAdapter(this);
 
-
-
-        LinearLayout button_add_new_expense_sheet = (LinearLayout) findViewById(R.id.button_add_new_expense_sheet);
-        button_share_all_expense_sheet = (LinearLayout) findViewById(R.id.button_share_all_expense_sheet);
-        button_remove_group = (LinearLayout) findViewById(R.id.button_remove_group);
+        ImageView button_add_new_expense_sheet = (ImageView) findViewById(R.id.button_add_new_expense_sheet);
+        button_share_all_expense_sheet = (ImageView) findViewById(R.id.button_share_all_expense_sheet);
+        button_remove_group = (ImageView) findViewById(R.id.button_remove_group);
 
         group_list_spinner = (Spinner) findViewById(R.id.group_list_spinner);
         group_list_spinner.setOnItemSelectedListener(this);
@@ -205,14 +201,16 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
     private void openSheetScreen(Sheet sheet){
         Intent intent = new Intent(this, ExpenseDetailActivity.class);
-        intent.putExtra(AppConstant.INTENT_KEY_SHEET, sheet);
+        intent.putExtra(INTENT_KEY_SHEET, sheet);
         startActivityForResult(intent, 100);
     }
 
     private void openLoginScreen(){
-        Intent intent = new Intent(this, LoginActivity.class);
-        startActivity(intent);
-        finish();
+//        Intent intent = new Intent(this, LoginActivity.class);
+//        startActivity(intent);
+//        finish();
+
+        AppUtils.openNewScreen(this, LoginActivity.class, true, null);
     }
 
     private boolean updateSheetDetails(Sheet sheet){
@@ -290,7 +288,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         AppUtils.getService().getUserList(new UserListGenerationListener() {
             @Override
             public void onListGenerated(ArrayList<UserDetails> userDetailses) {
-                showUserListDialog(userDetailses);
+                openShareGroupScreen(userDetailses);
             }
         });
     }
@@ -306,9 +304,15 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    private void showUserListDialog(ArrayList<UserDetails> userDetailsArrayList){
+    private void openShareGroupScreen(ArrayList<UserDetails> userDetailsArrayList){
+
+        GroupDataSource groupDataSource = new GroupDataSource(this);
+        Group group = groupDataSource.getGroup(selectedGroupid);
+        ArrayList<String> sharedwith = group.getSharedwith();
+
         user_list_progressbar.setVisibility(View.GONE);
-        UserListDialog dialog = new UserListDialog(this, new SelectedUserListListener() {
+
+        /*UserListDialog dialog = new UserListDialog(this, new SelectedUserListListener() {
             @Override
             public void onSharedUserListGenerated(ArrayList<UserDetails> userDetailses) {
                 performDBEntryForSharedUser(userDetailses);
@@ -317,7 +321,15 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         });
         dialog.setTitle("Choose user");
         dialog.show();
-        dialog.showUserList(userDetailsArrayList);
+        dialog.showUserList(userDetailsArrayList, sharedwith);*/
+
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList(INTENT_KEY_USER_DETAIL_LIST, userDetailsArrayList);
+        bundle.putStringArrayList(INTENT_KEY_SHARED_USER_LIST, sharedwith);
+
+        AppUtils.openNewScreen(this, ShareGroupActivity.class, false, bundle);
+
+
     }
 
     private void performServerEntryForSharedUser(ArrayList<UserDetails> userDetailses){
@@ -336,7 +348,6 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         groupDataSource.updateGroupEntry(group);
     }
 
-
     private ArrayList<String> generateUIDList(ArrayList<UserDetails> userDetailses){
         ArrayList<String> list = new ArrayList<>();
         for(UserDetails userDetails:userDetailses){
@@ -345,12 +356,15 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         return list;
     }
 
-
     private void performAnalysisOperation(int position){
         Sheet sheet = sheetListAdapter.getItem(position);
-        Intent intent = new Intent(this, AnalyseSheetActivity.class);
-        intent.putExtra(AppConstant.INTENT_KEY_SHEET, sheet);
-        startActivity(intent);
+//        Intent intent = new Intent(this, AnalyseSheetActivity.class);
+//        intent.putExtra(INTENT_KEY_SHEET, sheet);
+//        startActivity(intent);
+
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(INTENT_KEY_SHEET, sheet);
+        AppUtils.openNewScreen(this, AnalyseSheetActivity.class, false, bundle);
     }
 
     @Override

@@ -198,8 +198,6 @@ public class ExpenseListAdapter extends RecyclerView.Adapter<ExpenseListAdapter.
                         code = o1.getId().compareToIgnoreCase(o2.getId());
 
                     }
-                }else{
-                    code = o1.getId().compareToIgnoreCase(o2.getId());
                 }
             } catch (ParseException exp){
                 exp.printStackTrace();

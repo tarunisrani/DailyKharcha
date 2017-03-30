@@ -96,7 +96,7 @@ public class GroupListAdapter extends ArrayAdapter {
         group_list_owner_name.setText(group.getOwner_name());
         group_list_uid.setVisibility(View.GONE);
 //        group_list_uid.setText(group.getOwner_id());
-        spinner_drop_icon.setVisibility(View.VISIBLE);
+//        spinner_drop_icon.setVisibility(View.VISIBLE);
         divider_view.setVisibility(View.GONE);
 
 

@@ -97,6 +97,12 @@ public class GroupDataSource {
 
 
         GroupShareDataSource groupShareDataSource = new GroupShareDataSource(mContext);
+
+        //Clean the entries.
+        groupShareDataSource.removeGroupShareEntry(group.getGroup_id());
+
+
+        //Add individual user id in the share list.
         ArrayList<String> userlist = group.getSharedwith();
         for(String user: userlist){
             GroupShare groupShare = new GroupShare();
@@ -106,6 +112,21 @@ public class GroupDataSource {
         }
 
         return (count > 0);
+    }
+
+    public boolean removeSharedGroupEntry(Group group, ArrayList<String> userlist){
+        Log.i("Updating database", group.toString());
+
+        GroupShareDataSource groupShareDataSource = new GroupShareDataSource(mContext);
+
+        for(String user: userlist){
+            GroupShare groupShare = new GroupShare();
+            groupShare.setGroup_id(group.getGroup_id());
+            groupShare.setUser_id(user);
+            groupShareDataSource.removeGroupShareEntry(groupShare);
+        }
+
+        return true;
     }
 
     public ArrayList<Group> getGroupItems(){
