@@ -11,8 +11,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.tarunisrani.dailykharcha.R;
@@ -72,9 +74,9 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
 
         expenseListAdapter = new ExpenseListAdapter(this);
 
-        LinearLayout button_add_expense_item = (LinearLayout) findViewById(R.id.button_add_expense_item);
+        ImageView button_add_expense_item = (ImageView) findViewById(R.id.button_add_expense_item);
 //        ImageView expense_detail_sync_button = (ImageView) findViewById(R.id.expense_detail_sync_button);
-        LinearLayout button_submit_expense_sheet = (LinearLayout) findViewById(R.id.button_submit_expense_sheet);
+        ImageView button_submit_expense_sheet = (ImageView) findViewById(R.id.button_submit_expense_sheet);
         total_amount_value = (TextView) findViewById(R.id.total_amount_value);
         TextView expense_detail_sheet_name = (TextView) findViewById(R.id.expense_detail_sheet_name);
         RecyclerView expenses_sheet_add_item_view = (RecyclerView) findViewById(R.id.expenses_sheet_add_item_view);
@@ -93,6 +95,13 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
         button_submit_expense_sheet.setOnClickListener(this);
 
         expenseListAdapter.setClickListener(this);
+
+//        Toolbar mToolbar = (Toolbar) findViewById(R.id.expense_detail_toolbar);
+//        setSupportActionBar(mToolbar);
+//        getSupportActionBar().setDisplayShowTitleEnabled(false);
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        getSupportActionBar().setHomeButtonEnabled(true);
+
 
         fetchSheetDetail();
 //        performSyncOperation(false);
@@ -346,5 +355,12 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
     protected void onPause() {
         super.onPause();
         unregisterReceiver(receiver);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.option_toolbar, menu);
+        return true;
     }
 }

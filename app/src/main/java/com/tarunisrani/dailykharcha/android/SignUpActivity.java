@@ -7,14 +7,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.listeners.ServerSignupListener;
 import com.tarunisrani.dailykharcha.network.LoginSignupNetworkCall;
-import com.tarunisrani.dailykharcha.utils.AppConstant;
 import com.tarunisrani.dailykharcha.utils.AppUtils;
+
+import static com.tarunisrani.dailykharcha.utils.AppConstant.INTENT_KEY_SHOW_MESSAGE;
 
 public class SignUpActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -31,7 +33,7 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
         setContentView(R.layout.signup_layout);
 
         Button button_submit = (Button) findViewById(R.id.signup_button_submit);
-        Button button_login = (Button) findViewById(R.id.login_button);
+        TextView button_login = (TextView) findViewById(R.id.login_button);
         name_input = (EditText) findViewById(R.id.signup_username_input);
         email_input = (EditText) findViewById(R.id.signup_email_input);
         password_input = (EditText) findViewById(R.id.signup_password_input);
@@ -46,12 +48,12 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
         final String name = name_input.getText().toString();
         final String email = email_input.getText().toString();
         String password = password_input.getText().toString();
-        progressbar.setVisibility(View.VISIBLE);
+
         if(!name.isEmpty() && !email.isEmpty() && !password.isEmpty()){
 //            AppUtils.getService().performSignUp(email, password);
 //            AppUtils.getService().performSignIn(email, password);
 //            AppUtils.getService().performSignUpByUID();
-
+            progressbar.setVisibility(View.VISIBLE);
             new LoginSignupNetworkCall().createNewUserInFirebase(this, name, email, password, new ServerSignupListener(){
 
                 @Override
@@ -84,13 +86,13 @@ public class SignUpActivity extends AppCompatActivity implements View.OnClickLis
 
     private void openLoginScreen(){
         Intent intent = new Intent(this, LoginActivity.class);
-        intent.putExtra(AppConstant.INTENT_KEY_SHOW_MESSAGE, true);
+        intent.putExtra(INTENT_KEY_SHOW_MESSAGE, true);
         startActivity(intent);
         finish();
     }
 
     private void performScreenChangeOperation(){
-        startActivity(new Intent(this, SignUpActivity.class));
+        startActivity(new Intent(this, LoginActivity.class));
         finish();
     }
 

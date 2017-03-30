@@ -8,12 +8,19 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:orientation="vertical"
+    android:background="@color/colorBG"
     tools:context=".android.SignUpActivity">
-    <Button
+    <TextView
         android:id="@+id/login_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp"
+        android:paddingLeft="25dp"
+        android:paddingRight="25dp"
+        android:textSize="20sp"
+        android:textColor="@drawable/button_bg_filled_blue"
         android:text="Login"/>
     <LinearLayout
         android:layout_width="match_parent"
@@ -21,48 +28,64 @@
         android:layout_centerInParent="true"
         android:orientation="vertical">
 
-        <TextView
+        <!--<TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Name"/>
+            android:text="Name"/>-->
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/signup_username_input_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Name">
         <EditText
             android:id="@+id/signup_username_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="35dp"
-            android:background="@android:color/holo_purple"
             android:layout_marginBottom="20dp"/>
+        </android.support.design.widget.TextInputLayout>
 
-        <TextView
+        <!--<TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Email"/>
+            android:text="Email"/>-->
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/signup_email_input_wrapper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Email">
         <EditText
             android:id="@+id/signup_email_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="35dp"
             android:inputType="textEmailAddress"
-            android:background="@android:color/holo_purple"
             android:layout_marginBottom="20dp"/>
+        </android.support.design.widget.TextInputLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/signup_password_input_wrapper"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Password"/>
+            android:hint="Password">
         <EditText
             android:id="@+id/signup_password_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="35dp"
             android:inputType="textPassword"
-            android:background="@android:color/holo_purple"
             android:layout_marginBottom="20dp"/>
+        </android.support.design.widget.TextInputLayout>
 
         <Button
             android:id="@+id/signup_button_submit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:paddingLeft="25dp"
+            android:paddingRight="25dp"
+            android:background="@drawable/button_bg_filled_green"
             android:layout_gravity="center"
             android:text="Submit"/>
     </LinearLayout>

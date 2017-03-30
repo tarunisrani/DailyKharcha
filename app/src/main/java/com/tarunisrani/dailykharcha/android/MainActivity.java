@@ -1,31 +1,27 @@
 package com.tarunisrani.dailykharcha.android;
 
-import android.app.ActivityManager;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.tarunisrani.dailykharcha.R;
+import com.tarunisrani.dailykharcha.listeners.ServiceConnectionListener;
+import com.tarunisrani.dailykharcha.utils.AppConstant;
 import com.tarunisrani.dailykharcha.utils.AppUtils;
+import com.tarunisrani.dailykharcha.utils.SharedPreferrenceUtil;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "MainActivity";
 
     private BackendService backendService;
-
-//    private DatabaseReference myRef;
-//    private FirebaseAuth mAuth;
 
     private FirebaseAuth firebaseAuth;
     private FirebaseUser user;
@@ -36,41 +32,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button button_todo = (Button) findViewById(R.id.button_todo);
-        Button button_reminder = (Button) findViewById(R.id.button_reminder);
-        Button button_daily_expense = (Button) findViewById(R.id.button_daily_expense);
-//        Button button_logout = (Button) findViewById(R.id.button_logout);
-
-        button_todo.setOnClickListener(this);
-        button_reminder.setOnClickListener(this);
-        button_daily_expense.setOnClickListener(this);
-//        button_logout.setOnClickListener(this);
-
-
-
-        /*FirebaseDatabase database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("message");
-
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-//                HashMap value = (HashMap) dataSnapshot.getValue();
-
-                Log.d(TAG, "Value is: " + dataSnapshot.getValue());
+        Intent intent = getIntent();
+        if(intent!=null) {
+            String group_id = intent.getStringExtra(AppConstant.INTENT_KEY_GROUP);
+            if(group_id!=null && !group_id.isEmpty()){
+                new SharedPreferrenceUtil().setSelectedGroup(this, group_id);
             }
+        }
 
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException());
-            }
-        });*/
+        FireBaseInitialization();
 
         firebaseAuth = FirebaseAuth.getInstance();
         user = firebaseAuth.getCurrentUser();
 
+    }
+
+    private void FireBaseInitialization() {
+        Bundle params = new Bundle();
+        params.putString(FirebaseAnalytics.Param.VALUE, "Firebase");
+        FirebaseAnalytics analytics = FirebaseAnalytics.getInstance(MainActivity.this);
+        analytics.logEvent("Firebase", params);
     }
 
     private void checkUserStatus(){
@@ -85,93 +66,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    private void performLogOutOperation(){
-        firebaseAuth.signOut();
-    }
-
 
     @Override
     protected void onResume() {
-        performServiceStartOperation();
+        AppUtils.performServiceStartOperation(this, new ServiceConnectionListener() {
+            @Override
+            public void onServiceBind(BackendService service) {
+                checkUserStatus();
+            }
+        });
+
+//        checkUserStatus();
+
         super.onResume();
     }
 
     @Override
-    protected void onPause() {
-        if(AppUtils.getService()!=null && isServiceRunning(AppUtils.getService().getClass())) {
-            try {
-                unbindService(mConnection);
-            }catch (IllegalArgumentException exp){
-                exp.printStackTrace();
-            }
-        }
-        super.onPause();
-    }
-
-    @Override
     protected void onDestroy() {
-        /*if(AppUtils.getService()!=null && isServiceRunning(AppUtils.getService().getClass())) {
-            try {
-                unbindService(mConnection);
-            }catch (IllegalArgumentException exp){
-                exp.printStackTrace();
-            }
-        }*/
         super.onDestroy();
-    }
-
-    private ServiceConnection mConnection = new ServiceConnection() {
-
-        public void onServiceConnected(ComponentName className,
-                                       IBinder binder) {
-            BackendService.MyBinder b = (BackendService.MyBinder) binder;
-            backendService = b.getService();
-            AppUtils.setService(backendService);
-            backendService.startService(b.getmIntent());
-            Toast.makeText(MainActivity.this, "Connected", Toast.LENGTH_SHORT)
-                    .show();
-
-            checkUserStatus();
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            backendService = null;
-            AppUtils.setService(backendService);
-            Toast.makeText(MainActivity.this, "onServiceDisconnected", Toast.LENGTH_SHORT)
-                    .show();
-        }
-    };
-
-
-    private boolean isServiceRunning(Class<?> serviceClass) {
-        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (serviceClass.getName().equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    private void openToDoScreen(){
-//        startActivity(new Intent(this, TodoActivity.class));
-
-//        myRef.setValue("A");
-//        myRef.push().child("A");
-//        myRef.push().setValue("B");
-        startActivity(new Intent(this, LoginActivity.class));
-    }
-
-    private void openReminderScreen(){
-//        startActivity(new Intent(this, ReminderActivity.class));
-
-//        myRef.child("A").child("B").setValue("C");
-        startActivity(new Intent(this, SignUpActivity.class));
+        AppUtils.performUnbindService(this);
     }
 
     private void openDailyExpenseScreen(){
-        startActivity(new Intent(this, ExpenseActivity.class));
+        Intent intent = new Intent(this, ExpenseActivity.class);
+        startActivity(intent);
         finish();
     }
 
@@ -189,31 +107,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         finish();
     }
 
-    private void performServiceStartOperation(){
-        if(AppUtils.getService()==null) {
-            Intent intent = new Intent(this, BackendService.class);
-            bindService(intent, mConnection,
-                    Context.BIND_AUTO_CREATE);
-        }else{
-            checkUserStatus();
-        }
+    @Override
+    public void onClick(View v) {
+
     }
 
     @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.button_todo:
-                openToDoScreen();
-                break;
-            case R.id.button_reminder:
-                openReminderScreen();
-                break;
-            case R.id.button_daily_expense:
-                openDailyExpenseScreen();
-                break;
-            /*case R.id.button_logout:
-                performLogOutOperation();
-                break;*/
-        }
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.option_toolbar, menu);
+        return true;
     }
 }

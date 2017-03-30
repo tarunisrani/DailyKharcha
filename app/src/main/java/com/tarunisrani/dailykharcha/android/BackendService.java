@@ -30,11 +30,13 @@ import com.tarunisrani.dailykharcha.model.Expense;
 import com.tarunisrani.dailykharcha.model.Group;
 import com.tarunisrani.dailykharcha.model.Sheet;
 import com.tarunisrani.dailykharcha.model.UserDetails;
+import com.tarunisrani.dailykharcha.utils.AppUtils;
 import com.tarunisrani.dailykharcha.utils.SharedPreferrenceUtil;
 
 import org.json.JSONException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -50,6 +52,7 @@ public class BackendService extends Service {
     public static final String FILTER_GROUP = "com.tarunisrani.dailykharcha.android.backendservice.group";
     public static final String ACTION_ADDED = "ACTION_ADDED";
     public static final String ACTION_MODIFIED = "ACTION_MODIFIED";
+    public static final String ACTION_REMOVED = "ACTION_REMOVED";
 
     private final MyBinder mBinder = new MyBinder();
 
@@ -61,27 +64,26 @@ public class BackendService extends Service {
     private DatabaseReference global_user_details_reference;
     private DatabaseReference global_database_reference;
 
+    private HashMap<String, ChildEventListener> listenerHashMap = new HashMap<>();
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
         mAuth = FirebaseAuth.getInstance();
-
-        Toast.makeText(this, "onStartCommand", Toast.LENGTH_SHORT)
-                .show();
-        return Service.START_NOT_STICKY;
+        Log.e("Service", "Service started...");
+//        Toast.makeText(this, "Service started...", Toast.LENGTH_SHORT).show();
+        return Service.START_STICKY;
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Toast.makeText(this, "onBind", Toast.LENGTH_SHORT)
-                .show();
         mBinder.setmIntent(intent);
         return mBinder;
     }
 
-    class MyBinder extends Binder {
+    public class MyBinder extends Binder {
         public Intent getmIntent() {
             return mIntent;
         }
@@ -92,7 +94,7 @@ public class BackendService extends Service {
 
         private Intent mIntent;
 
-        BackendService getService() {
+        public BackendService getService() {
             return BackendService.this;
         }
     }
@@ -113,8 +115,9 @@ public class BackendService extends Service {
         ArrayList<Group> groupArrayList = groupDataSource.getGroupItems();
 
         for(Group group: groupArrayList){
-            startSheetListener(group.getGroup_id());
-            startExpenseListener(group.getGroup_id());
+//            startSheetListener(group.getGroup_id());
+//            startExpenseListener(group.getGroup_id());
+            startGroupRelatedListeners(group);
         }
 
 //        startSheetListener(selected_group_id);
@@ -158,7 +161,7 @@ public class BackendService extends Service {
         Log.d("Listener", "Expense listener started");
         final DatabaseReference reference = global_database_reference.child(selected_group_id).child("expense");
 
-        reference.addChildEventListener(new ChildEventListener() {
+        ChildEventListener childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 if (dataSnapshot!=null && dataSnapshot.getValue()!=null) {
@@ -166,7 +169,7 @@ public class BackendService extends Service {
                     Expense expense = dataSnapshot.getValue(Expense.class);
                     expense.setServer_expense_id(dataSnapshot.getKey());
                     addExpenseIfNotExist(expense);
-                    publishExpenseResults(expense, ACTION_ADDED);
+
                 }else{
                     Log.e("Expense onChildAdded", "null");
                 }
@@ -178,8 +181,9 @@ public class BackendService extends Service {
                     Log.e("Expense onChildChanged", dataSnapshot.getValue().toString());
                     Expense expense = dataSnapshot.getValue(Expense.class);
                     expense.setServer_expense_id(dataSnapshot.getKey());
-                    updateExpense(expense);
-                    publishExpenseResults(expense, ACTION_MODIFIED);
+                    if(updateExpense(expense)) {
+                        publishExpenseResults(expense, ACTION_MODIFIED);
+                    }
                 }else{
                     Log.e("Expense onChildChanged", "null");
                 }
@@ -207,15 +211,26 @@ public class BackendService extends Service {
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        };
 
+        listenerHashMap.put(selected_group_id, childEventListener);
+
+        reference.addChildEventListener(childEventListener);
+    }
+
+    private void removeExpenseListener(String selected_group_id) {
+        DatabaseReference reference = global_database_reference.child(selected_group_id).child("expense");
+        ChildEventListener childEventListener = listenerHashMap.remove(selected_group_id);
+        if(childEventListener!=null) {
+            reference.removeEventListener(childEventListener);
+        }
     }
 
     private void startSheetListener(String selected_group_id){
         Log.d("Listener", "Sheet listener started");
         final DatabaseReference reference = global_database_reference.child(selected_group_id).child("sheet");
 
-        reference.addChildEventListener(new ChildEventListener() {
+        ChildEventListener childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 if (dataSnapshot!=null && dataSnapshot.getValue()!=null) {
@@ -223,7 +238,7 @@ public class BackendService extends Service {
                     Sheet sheet = dataSnapshot.getValue(Sheet.class);
                     sheet.setServer_id(dataSnapshot.getKey());
                     addSheetIfNotExist(sheet);
-                    publishSheetResults(sheet, ACTION_ADDED);
+
                 }else{
                     Log.e("Sheet onChildAdded", "null");
                 }
@@ -235,8 +250,9 @@ public class BackendService extends Service {
                     Log.e("Sheet onChildChanged", dataSnapshot.getValue().toString());
                     Sheet sheet = dataSnapshot.getValue(Sheet.class);
                     sheet.setServer_id(dataSnapshot.getKey());
-                    updateSheet(sheet);
-                    publishSheetResults(sheet, ACTION_MODIFIED);
+                    if(updateSheet(sheet)) {
+                        publishSheetResults(sheet, ACTION_MODIFIED);
+                    }
                 }else{
                     Log.e("Sheet onChildChanged", "null");
                 }
@@ -264,8 +280,17 @@ public class BackendService extends Service {
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        };
 
+        listenerHashMap.put(selected_group_id, childEventListener);
+
+        reference.addChildEventListener(childEventListener);
+
+    }
+
+    private void removeSheetListener(String selected_group_id) {
+        DatabaseReference reference = global_database_reference.child(selected_group_id).child("sheet");
+        reference.removeEventListener(listenerHashMap.remove(selected_group_id));
     }
 
     private void startGroupListener(){
@@ -277,9 +302,9 @@ public class BackendService extends Service {
                 if (dataSnapshot!=null && dataSnapshot.getValue()!=null) {
                     Log.e("Group onChildAdded", dataSnapshot.getValue().toString());
                     Group group = dataSnapshot.getValue(Group.class);
-
+                    group.setServerid(dataSnapshot.getKey());
                     addGroupIfNotExist(group);
-//                    publishExpenseResults(expense, ACTION_ADDED);
+//                    publishGroupResults(group, ACTION_ADDED);
                 }else{
                     Log.e("Group onChildAdded", "null");
                 }
@@ -289,10 +314,10 @@ public class BackendService extends Service {
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                 if (dataSnapshot!=null && dataSnapshot.getValue()!=null) {
                     Log.e("Group onChildChanged", dataSnapshot.getValue().toString());
-                    Expense expense = dataSnapshot.getValue(Expense.class);
-                    expense.setServer_expense_id(dataSnapshot.getKey());
-                    updateExpense(expense);
-                    publishExpenseResults(expense, ACTION_MODIFIED);
+                    Group group = dataSnapshot.getValue(Group.class);
+                    group.setServerid(dataSnapshot.getKey());
+                    updateGroup(group);
+                    publishGroupResults(group, ACTION_MODIFIED);
                 }else{
                     Log.e("Group onChildChanged", "null");
                 }
@@ -301,18 +326,21 @@ public class BackendService extends Service {
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 if (dataSnapshot!=null && dataSnapshot.getValue()!=null) {
-                    Log.e("Expense onChildRemoved", dataSnapshot.getValue().toString());
+                    Log.e("Group onChildRemoved", dataSnapshot.getValue().toString());
+                    Group group = dataSnapshot.getValue(Group.class);
+                    group.setServerid(dataSnapshot.getKey());
+                    removeGroupIfExist(group);
                 }else{
-                    Log.e("Expense onChildRemoved", "null");
+                    Log.e("Group onChildRemoved", "null");
                 }
             }
 
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
                 if (dataSnapshot!=null && dataSnapshot.getValue()!=null) {
-                    Log.e("Expense onChildMoved", dataSnapshot.getValue().toString());
+                    Log.e("Group onChildMoved", dataSnapshot.getValue().toString());
                 }else{
-                    Log.e("Expense onChildMoved", "null");
+                    Log.e("Group onChildMoved", "null");
                 }
             }
 
@@ -333,7 +361,7 @@ public class BackendService extends Service {
                     Log.e("Shared onChildAdded", dataSnapshot.getValue().toString());
                     Group group = dataSnapshot.getValue(Group.class);
                     addGroupIfNotExist(group);
-                    publishExpenseResults(group, ACTION_ADDED);
+
                 }else{
                     Log.e("Shared onChildAdded", "null");
                 }
@@ -345,7 +373,7 @@ public class BackendService extends Service {
                     Log.e("Shared onChildChanged", dataSnapshot.getValue().toString());
                     Group group = dataSnapshot.getValue(Group.class);
                     updateGroup(group);
-                    publishExpenseResults(group, ACTION_ADDED);
+                    publishGroupResults(group, ACTION_MODIFIED);
 
                 }else{
                     Log.e("Shared onChildChanged", "null");
@@ -355,18 +383,21 @@ public class BackendService extends Service {
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 if (dataSnapshot!=null && dataSnapshot.getValue()!=null) {
-                    Log.e("Expense onChildRemoved", dataSnapshot.getValue().toString());
+                    Log.e("Shared onChildRemoved", dataSnapshot.getValue().toString());
+                    Group group = dataSnapshot.getValue(Group.class);
+                    group.setServerid(dataSnapshot.getKey());
+                    removeGroupIfExist(group);
                 }else{
-                    Log.e("Expense onChildRemoved", "null");
+                    Log.e("Shared onChildRemoved", "null");
                 }
             }
 
             @Override
             public void onChildMoved(DataSnapshot dataSnapshot, String s) {
                 if (dataSnapshot!=null && dataSnapshot.getValue()!=null) {
-                    Log.e("Expense onChildMoved", dataSnapshot.getValue().toString());
+                    Log.e("Shared onChildMoved", dataSnapshot.getValue().toString());
                 }else{
-                    Log.e("Expense onChildMoved", "null");
+                    Log.e("Shared onChildMoved", "null");
                 }
             }
 
@@ -380,7 +411,9 @@ public class BackendService extends Service {
     private void addSheetIfNotExist(Sheet sheet){
         ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(this);
         if(!expenseSheetDataSource.isSheetEntryExist(sheet)){
-            createSheetEntryInDb(sheet);
+            if(createSheetEntryInDb(sheet)){
+                publishSheetResults(sheet, ACTION_ADDED);
+            }
         }
     }
 
@@ -397,7 +430,9 @@ public class BackendService extends Service {
     private void addExpenseIfNotExist(Expense expense){
         ExpenseDataSource expenseDataSource = new ExpenseDataSource(this);
         if(!expenseDataSource.isExpenseEntryExist(expense)){
-            createExpenseEntryInDb(expense);
+            if(createExpenseEntryInDb(expense)){
+                publishExpenseResults(expense, ACTION_ADDED);
+            }
         }
     }
 
@@ -415,9 +450,25 @@ public class BackendService extends Service {
         GroupDataSource groupDataSource = new GroupDataSource(this);
         if(!groupDataSource.isGroupEntryExist(group)){
             if(createGroupEntryInDb(group)){
-                startSheetListener(group.getGroup_id());
-                startExpenseListener(group.getGroup_id());
+                startGroupRelatedListeners(group);
             }
+            publishGroupResults(group, ACTION_ADDED);
+        }
+    }
+
+    public void startGroupRelatedListeners(Group group){
+        startSheetListener(group.getGroup_id());
+        startExpenseListener(group.getGroup_id());
+    }
+
+    private void removeGroupIfExist(Group group){
+        GroupDataSource groupDataSource = new GroupDataSource(this);
+        if(groupDataSource.isGroupEntryExist(group)){
+            if(removeGroupFromDB(group)){
+                removeSheetListener(group.getGroup_id());
+                removeExpenseListener(group.getGroup_id());
+            }
+            publishGroupResults(group, ACTION_REMOVED);
         }
     }
 
@@ -429,6 +480,20 @@ public class BackendService extends Service {
     public boolean updateGroup(Group group){
         GroupDataSource groupDataSource = new GroupDataSource(this);
         return groupDataSource.updateGroupEntry(group);
+    }
+
+    public boolean removeGroupFromDB(Group group){
+        GroupDataSource groupDataSource = new GroupDataSource(this);
+        return groupDataSource.removeGroupEntry(group);
+    }
+
+    public void removeGroupFromServer(Group group){
+        ArrayList<String> users = group.getSharedwith();
+        for(String user:users){
+            Log.e("Remove shared", "Removing shared group from uid: "+user);
+            database.getReference("dailykharcha").child("users").child(user).child("sharedgroup").child(group.getGroup_id()).setValue(null);
+        }
+        removeGroupEntryFromServer(group);
     }
 
     public void createExpenseEntryOnServer(final Expense expense) {
@@ -458,8 +523,15 @@ public class BackendService extends Service {
         reference.setValue(expense);
     }
 
+    public void updateExpenseEntryOnServer(final Expense expense) {
+        String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
+        DatabaseReference reference = global_database_reference.child(selected_group_id).child("expense").child(expense.getServer_expense_id());
+        reference.setValue(expense);
+    }
+
     public void createGroupEntryOnServer(final Group group, final AddGroupOnServerListener listener) {
-        DatabaseReference reference = global_user_reference.child("group").push();
+        DatabaseReference reference = global_user_reference.child("group").child(group.getGroup_id());
+//        DatabaseReference reference = global_user_reference.child("group").push();
 
         reference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -469,6 +541,16 @@ public class BackendService extends Service {
                     if(listener!=null){
                         listener.onGroupAddedOnServer();
                     }
+
+                    GroupDataSource groupDataSource = new GroupDataSource(BackendService.this);
+                    Log.e("Expense", dataSnapshot.getKey() + "  --  " + dataSnapshot.getValue().toString());
+                    group.setServerid(dataSnapshot.getKey());
+                    if (groupDataSource.updateGroupEntry(group)) {
+                        Log.d("Update", "Successfully updated server expense id");
+                    } else {
+                        Log.d("Update", "Failed to update server expense id");
+                    }
+
                 }
             }
 
@@ -480,37 +562,83 @@ public class BackendService extends Service {
         reference.setValue(group);
     }
 
-    public void createSharedGroupEntryOnServer(ArrayList<UserDetails> userDetailses, final Group group) {
+    public void updateGroupEntryOnServer(Group group) {
+        String user_id = new SharedPreferrenceUtil().fetchUserID(this);
+        DatabaseReference reference = global_user_details_reference.child(user_id).child("group").child(group.getGroup_id());
+        reference.setValue(group);
+    }
 
-        for(UserDetails userDetails : userDetailses){
-            String user_id = userDetails.getUid();
-            DatabaseReference reference = global_user_details_reference.child(user_id).child("sharedgroup").push();
+    public void removeGroupEntryFromServer(Group group) {
+        String user_id = new SharedPreferrenceUtil().fetchUserID(this);
+        DatabaseReference reference = global_user_details_reference.child(user_id).child("group").child(group.getGroup_id());
+        reference.setValue(null);
+    }
 
-            reference.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if(dataSnapshot!=null && dataSnapshot.getValue()!=null) {
-                        Log.e("Group", dataSnapshot.getKey() + "  --  " + dataSnapshot.getValue().toString());
+    public void createSharedGroupEntryOnServer(final ArrayList<UserDetails> userDetailses, final Group group) {
+
+        if(userDetailses.size() == 0 && group!=null){
+            group.setSharedwith(generateUIDList(userDetailses));
+            updateGroupEntryOnServer(group);
+        }else{
+            for(UserDetails userDetails : userDetailses){
+                String user_id = userDetails.getUid();
+//            DatabaseReference reference = global_user_details_reference.child(user_id).child("sharedgroup").push();
+                DatabaseReference reference = global_user_details_reference.child(user_id).child("sharedgroup").child(group.getGroup_id());
+
+                reference.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot!=null && dataSnapshot.getValue()!=null && group != null) {
+                            Log.e("Group", dataSnapshot.getKey() + "  --  " + dataSnapshot.getValue().toString());
+                            group.setSharedwith(generateUIDList(userDetailses));
+                            updateGroupEntryOnServer(group);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
 
                     }
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
-            reference.setValue(group);
+                });
+                reference.setValue(group);
+            }
         }
-
-
     }
 
-    public void updateExpenseEntryOnServer(final Expense expense) {
-        String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
-        DatabaseReference reference = global_database_reference.child(selected_group_id).child("expense").child(expense.getServer_expense_id());
-        reference.setValue(expense);
+    public void createUnSharedGroupEntryOnServer(final ArrayList<UserDetails> userDetailses, final Group group) {
+
+        if(userDetailses.size() == 0 && group!=null){
+            group.setSharedwith(generateUIDList(userDetailses));
+            updateGroupEntryOnServer(group);
+        }else{
+            for(UserDetails userDetails : userDetailses){
+                String user_id = userDetails.getUid();
+                DatabaseReference reference = global_user_details_reference.child(user_id).child("sharedgroup").child(group.getGroup_id());
+
+                reference.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+                reference.setValue(null);
+            }
+        }
     }
+
+    private ArrayList<String> generateUIDList(ArrayList<UserDetails> userDetailses){
+        ArrayList<String> list = new ArrayList<>();
+        for(UserDetails userDetails:userDetailses){
+            list.add(userDetails.getUid());
+        }
+        return list;
+    }
+
 
     public void createSheetEntryOnServer(final Sheet sheet) throws JSONException{
         String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
@@ -562,11 +690,16 @@ public class BackendService extends Service {
         sendBroadcast(intent);
     }
 
-    private void publishExpenseResults(Group group, String action) {
+    private void publishGroupResults(Group group, String action) {
         Intent intent = new Intent(FILTER_GROUP);
         intent.putExtra("GROUP", group);
         intent.putExtra("ACTION", action);
         sendBroadcast(intent);
+        if(!group.getOwner_id().equalsIgnoreCase(new SharedPreferrenceUtil().fetchUserID(this))){
+            AppUtils.showNotification(this, group);
+        }
+
+
     }
 
     public void performSignUp(String email, String password, final FirebaseListener listener){
@@ -711,7 +844,7 @@ public class BackendService extends Service {
 
     }
 
-    public boolean createGroupEntryInDB(Group group){
+    public boolean createGroupEntryInDBIfNotExist(Group group){
         GroupDataSource groupDataSource = new GroupDataSource(this);
 
         if(!groupDataSource.isGroupEntryExist(group)){
@@ -838,6 +971,21 @@ public class BackendService extends Service {
         if (mAuthListener != null) {
             mAuth.removeAuthStateListener(mAuthListener);
         }
+        Toast.makeText(this, "DESTROY", Toast.LENGTH_SHORT).show();
         super.onDestroy();
     }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.d(this.getClass().getName(), "UNBIND");
+        Toast.makeText(this, "UNBIND", Toast.LENGTH_SHORT).show();
+        return true;
+    }
+
+    @Override
+    public void onRebind(Intent intent) {
+        super.onRebind(intent);
+        Toast.makeText(this, "REBIND", Toast.LENGTH_SHORT).show();
+    }
+
 }

@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
 
 import com.tarunisrani.dailykharcha.R;
@@ -25,6 +27,10 @@ public class UserListDialog extends Dialog implements View.OnClickListener, User
     private RecyclerView user_list_list_view;
     private UserListAdapter adapter;
     private SelectedUserListListener mListListener;
+    private TextView label_no_user;
+    private TextView button_cancel;
+    private ArrayList<UserDetails> shareWithUserList;
+    private AutoCompleteTextView user_list_input_name;
 
     public UserListDialog(Context context, SelectedUserListListener listListener) {
         super(context);
@@ -46,7 +52,9 @@ public class UserListDialog extends Dialog implements View.OnClickListener, User
 
         user_list_list_view = (RecyclerView) findViewById(R.id.user_list_list_view);
         TextView button_ok = (TextView) findViewById(R.id.user_list_button_ok);
-        TextView button_cancel = (TextView) findViewById(R.id.user_list_button_cancel);
+        user_list_input_name = (AutoCompleteTextView) findViewById(R.id.user_list_input_name);
+        button_cancel = (TextView) findViewById(R.id.user_list_button_cancel);
+        label_no_user = (TextView) findViewById(R.id.label_no_user);
 
         button_ok.setOnClickListener(this);
         button_cancel.setOnClickListener(this);
@@ -55,17 +63,43 @@ public class UserListDialog extends Dialog implements View.OnClickListener, User
 
     }
 
-    public void showUserList(ArrayList<UserDetails> userList){
+    public void setShareWithUserList(ArrayList<UserDetails> userList){
+        this.shareWithUserList = userList;
+    }
 
+    private ArrayList<String> generateListOfUserNames(ArrayList<UserDetails> userList){
+        ArrayList<String> result = new ArrayList<>();
+        for(UserDetails userDetails: userList){
+            result.add(userDetails.getUser_name());
+        }
+        return result;
+    }
 
-        adapter.setUserDetailList(userList);
-        adapter.setClickListener(this);
-        user_list_list_view.setAdapter(adapter);
-        user_list_list_view.setHasFixedSize(true);
-        LinearLayoutManager linearLayout =new LinearLayoutManager(getContext());
-        linearLayout.setOrientation(LinearLayoutManager.VERTICAL);
-        user_list_list_view.setLayoutManager(linearLayout);
-        adapter.notifyDataSetChanged();
+    public void showUserList(ArrayList<UserDetails> userList, ArrayList<String> sharedWithUserList){
+
+        if(userList.size() >0){
+
+            this.shareWithUserList = userList;
+
+            ArrayAdapter<String> expense_type_adapter = new ArrayAdapter<String>(getContext(),
+                    android.R.layout.simple_list_item_1, generateListOfUserNames(userList));
+
+            user_list_input_name.setAdapter(expense_type_adapter);
+
+            label_no_user.setVisibility(View.GONE);
+            user_list_list_view.setVisibility(View.VISIBLE);
+            adapter.setUserDetailList(userList);
+            adapter.setmSharedWith(sharedWithUserList);
+            adapter.setClickListener(this);
+            user_list_list_view.setAdapter(adapter);
+            user_list_list_view.setHasFixedSize(true);
+            LinearLayoutManager linearLayout =new LinearLayoutManager(getContext());
+            linearLayout.setOrientation(LinearLayoutManager.VERTICAL);
+            user_list_list_view.setLayoutManager(linearLayout);
+            adapter.notifyDataSetChanged();
+        }else{
+            button_cancel.setVisibility(View.GONE);
+        }
     }
 
     private void performOkOperation(){
@@ -77,12 +111,11 @@ public class UserListDialog extends Dialog implements View.OnClickListener, User
             }
         }
 
-        if(mListListener!=null){
+        if(mListListener!=null && userDetailsArrayList.size()>0){
             mListListener.onSharedUserListGenerated(userDetailsArrayList);
         }
 
         dismiss();
-
     }
 
     private void performCancelOperation(){
@@ -102,7 +135,12 @@ public class UserListDialog extends Dialog implements View.OnClickListener, User
     }
 
     @Override
-    public void onItemClick(int index, UserListAdapter.ViewHolder holder) {
-        holder.setCheckmarkEnable(!holder.getCheckmarkEnable());
+    public void onUserItemClick(int index, int operation) {
+
     }
+
+//    @Override
+//    public void onItemClick(int index, UserListAdapter.ViewHolder holder) {
+//        holder.setCheckmarkEnable(!holder.getCheckmarkEnable());
+//    }
 }

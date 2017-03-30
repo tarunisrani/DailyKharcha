@@ -15,6 +15,8 @@ import com.tarunisrani.dailykharcha.model.Sheet;
 
 import java.util.ArrayList;
 
+import static com.tarunisrani.dailykharcha.utils.AppConstant.INTENT_KEY_SHEET;
+
 public class AnalyseSheetActivity extends FragmentActivity implements TabLayout.OnTabSelectedListener {
 
     private ViewPager mViewPager;
@@ -36,7 +38,7 @@ public class AnalyseSheetActivity extends FragmentActivity implements TabLayout.
         Sheet sheet = null;
 
         if(intent != null){
-            sheet = intent.getParcelableExtra("SHEET");
+            sheet = intent.getParcelableExtra(INTENT_KEY_SHEET);
         }
 
         setPieData(sheet);
