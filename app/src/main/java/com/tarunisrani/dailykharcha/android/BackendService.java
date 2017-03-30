@@ -523,10 +523,25 @@ public class BackendService extends Service {
         reference.setValue(expense);
     }
 
-    public void updateExpenseEntryOnServer(final Expense expense) {
+    public void updateExpenseEntryOnServer(Expense expense) {
         String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
         DatabaseReference reference = global_database_reference.child(selected_group_id).child("expense").child(expense.getServer_expense_id());
         reference.setValue(expense);
+    }
+
+    public void removeExpenseEntryFromServer(Expense expense) {
+        String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
+        DatabaseReference reference = global_database_reference.child(selected_group_id).child("expense").child(expense.getServer_expense_id());
+        reference.setValue(null);
+    }
+
+    public void removeExpenseEntryFromServer(ArrayList<Expense> expense_list) {
+        String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
+        for(Expense expense: expense_list){
+            DatabaseReference reference = global_database_reference.child(selected_group_id).child("expense").child(expense.getServer_expense_id());
+            reference.setValue(null);
+        }
+
     }
 
     public void createGroupEntryOnServer(final Group group, final AddGroupOnServerListener listener) {
@@ -674,6 +689,13 @@ public class BackendService extends Service {
         final DatabaseReference reference = global_database_reference.child(selected_group_id).child("sheet").child(sheet.getServer_id());
 
         reference.setValue(sheet);
+    }
+
+    public void removeSheetEntryFromServer(Sheet sheet){
+        String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
+        final DatabaseReference reference = global_database_reference.child(selected_group_id).child("sheet").child(sheet.getServer_id());
+
+        reference.setValue(null);
     }
 
     private void publishSheetResults(Sheet sheet, String action) {

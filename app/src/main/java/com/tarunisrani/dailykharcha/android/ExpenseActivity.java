@@ -25,6 +25,7 @@ import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.adapters.ExpenseSheetListAdapter;
 import com.tarunisrani.dailykharcha.adapters.GroupListAdapter;
 import com.tarunisrani.dailykharcha.customui.AddGroupDialog;
+import com.tarunisrani.dailykharcha.dbhelper.ExpenseDataSource;
 import com.tarunisrani.dailykharcha.dbhelper.ExpenseSheetDataSource;
 import com.tarunisrani.dailykharcha.dbhelper.GroupDataSource;
 import com.tarunisrani.dailykharcha.listeners.AddGroupListener;
@@ -32,6 +33,7 @@ import com.tarunisrani.dailykharcha.listeners.AddGroupOnServerListener;
 import com.tarunisrani.dailykharcha.listeners.ExpenseSheetListClickListener;
 import com.tarunisrani.dailykharcha.listeners.ServiceConnectionListener;
 import com.tarunisrani.dailykharcha.listeners.UserListGenerationListener;
+import com.tarunisrani.dailykharcha.model.Expense;
 import com.tarunisrani.dailykharcha.model.Group;
 import com.tarunisrani.dailykharcha.model.Sheet;
 import com.tarunisrani.dailykharcha.model.UserDetails;
@@ -139,9 +141,9 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         String selected_group_id = new SharedPreferrenceUtil().fetchSelectedGroupID(this);
 
         int index = groupListAdapter.getIDPosition(selected_group_id);
-        if(groups.size()>1) {
-            group_list_spinner.setSelection(index != -1 ? index : 0);
-        }
+
+        group_list_spinner.setSelection(index != -1 ? index : 0);
+
 
     }
 
@@ -237,13 +239,19 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
     private boolean removeSheet(Sheet sheet){
         ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(this);
-        if(expenseSheetDataSource.removeSheetEntry(sheet)){
-            Log.e("Remove Sheet", "SUCCESSFUL");
-            return true;
-        }else{
-            Log.e("Remove Sheet", "FAILURE");
-            return false;
+        ExpenseDataSource expenseDataSource = new ExpenseDataSource(this);
+        ArrayList<Expense> expenseItems = expenseDataSource.getExpenseItems(sheet.getSheet_id());
+        if(expenseDataSource.removeExpenseEntry(expenseItems)){
+            AppUtils.getService().removeExpenseEntryFromServer(expenseItems);
+            if(expenseSheetDataSource.removeSheetEntry(sheet)){
+                Log.e("Remove Sheet", "SUCCESSFUL");
+                AppUtils.getService().removeSheetEntryFromServer(sheet);
+                return true;
+            }else{
+                Log.e("Remove Sheet", "FAILURE");
+            }
         }
+        return false;
     }
 
     private void performEditOperation(int position, ExpenseSheetListAdapter.ViewHolder viewHolder){

@@ -76,7 +76,7 @@ public class AppUtils {
         NotificationManager notificationManager =
                 (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
 
-        notificationManager.notify(0, mBuilder.build());
+//        notificationManager.notify(0, mBuilder.build());
 
 
     }

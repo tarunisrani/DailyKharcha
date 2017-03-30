@@ -260,6 +260,16 @@ public class ExpenseDataSource {
         return count > 0;
     }
 
+    public boolean removeExpenseEntry(ArrayList<Expense> expense_list){
+        long count = 0;
+        SQLiteDatabase database = databaseHelper.getWritableDatabase();
+        for(Expense expense: expense_list){
+            count += database.delete(TABLE_NAME, COLUMN_ID + " = ?", new String[]{String.valueOf(expense.getId())});
+        }
+        database.close();
+        return count > 0;
+    }
+
     public boolean isExpenseEntryExist(Expense expense){
         SQLiteDatabase database = databaseHelper.getReadableDatabase();
         Cursor cursor = database.query(TABLE_NAME,
