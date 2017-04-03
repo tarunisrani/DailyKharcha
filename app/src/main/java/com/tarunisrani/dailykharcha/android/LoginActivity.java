@@ -49,7 +49,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
 
         Button button_submit = (Button) findViewById(R.id.login_button_submit);
-        Button button_signup = (Button) findViewById(R.id.signup_button);
+        TextView button_signup = (TextView) findViewById(R.id.signup_button);
         email_input = (EditText) findViewById(R.id.login_email_input);
         email_input_wrapper = (TextInputLayout) findViewById(R.id.login_email_input_wrapper);
         password_input = (EditText) findViewById(R.id.login_password_input);

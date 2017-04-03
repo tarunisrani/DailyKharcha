@@ -72,8 +72,8 @@ public class BackendService extends Service {
 
         mAuth = FirebaseAuth.getInstance();
         Log.e("Service", "Service started...");
-        Toast.makeText(this, "Service started...", Toast.LENGTH_SHORT).show();
-        return Service.START_STICKY_COMPATIBILITY;
+//        Toast.makeText(this, "Service started...", Toast.LENGTH_SHORT).show();
+        return Service.START_STICKY;
     }
 
     @Nullable
@@ -576,30 +576,59 @@ public class BackendService extends Service {
 
     public void createSharedGroupEntryOnServer(final ArrayList<UserDetails> userDetailses, final Group group) {
 
-        for(UserDetails userDetails : userDetailses){
-            String user_id = userDetails.getUid();
+        if(userDetailses.size() == 0 && group!=null){
+            group.setSharedwith(generateUIDList(userDetailses));
+            updateGroupEntryOnServer(group);
+        }else{
+            for(UserDetails userDetails : userDetailses){
+                String user_id = userDetails.getUid();
 //            DatabaseReference reference = global_user_details_reference.child(user_id).child("sharedgroup").push();
-            DatabaseReference reference = global_user_details_reference.child(user_id).child("sharedgroup").child(group.getGroup_id());
+                DatabaseReference reference = global_user_details_reference.child(user_id).child("sharedgroup").child(group.getGroup_id());
 
-            reference.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if(dataSnapshot!=null && dataSnapshot.getValue()!=null) {
-                        Log.e("Group", dataSnapshot.getKey() + "  --  " + dataSnapshot.getValue().toString());
-                        group.setSharedwith(generateUIDList(userDetailses));
-                        updateGroupEntryOnServer(group);
+                reference.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot!=null && dataSnapshot.getValue()!=null && group != null) {
+                            Log.e("Group", dataSnapshot.getKey() + "  --  " + dataSnapshot.getValue().toString());
+                            group.setSharedwith(generateUIDList(userDetailses));
+                            updateGroupEntryOnServer(group);
+                        }
                     }
-                }
 
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
 
-                }
-            });
-            reference.setValue(group);
+                    }
+                });
+                reference.setValue(group);
+            }
         }
+    }
 
+    public void createUnSharedGroupEntryOnServer(final ArrayList<UserDetails> userDetailses, final Group group) {
 
+        if(userDetailses.size() == 0 && group!=null){
+            group.setSharedwith(generateUIDList(userDetailses));
+            updateGroupEntryOnServer(group);
+        }else{
+            for(UserDetails userDetails : userDetailses){
+                String user_id = userDetails.getUid();
+                DatabaseReference reference = global_user_details_reference.child(user_id).child("sharedgroup").child(group.getGroup_id());
+
+                reference.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+                reference.setValue(null);
+            }
+        }
     }
 
     private ArrayList<String> generateUIDList(ArrayList<UserDetails> userDetailses){

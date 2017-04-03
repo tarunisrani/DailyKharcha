@@ -26,6 +26,11 @@
             android:visibility="gone"/>
     </FrameLayout>
 
+    <AutoCompleteTextView
+        android:id="@+id/user_list_input_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -5,100 +5,78 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:background="@android:color/holo_orange_light"
+    android:background="@color/colorBG"
     tools:context=".android.ExpenseDetailActivity">
-    <android.support.v7.widget.Toolbar
+    <!--<android.support.v7.widget.Toolbar
         android:id="@+id/expense_detail_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+        app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>-->
     <!--<RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">-->
 
 
-
-    <LinearLayout
+    <android.support.v7.widget.CardView
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_gravity="center_horizontal"
-        android:background="@drawable/button_bg_filled_white"
-        android:padding="10dp"
-        android:layout_marginBottom="10dp">
-        <TextView
-            android:id="@+id/expense_detail_sheet_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:gravity="center"
-            android:textSize="20sp"
-            android:text="Sheet Name"/>
-        <TextView
-            android:id="@+id/total_amount_value"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginLeft="10dp"
-            android:textSize="15sp"
-            android:text="Total Amount"/>
-    </LinearLayout>
+        android:layout_height="wrap_content">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <!---->
+
         <LinearLayout
-            android:id="@+id/button_add_expense_item"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:background="@drawable/button_bg_filled_white"
-            android:padding="10dp">
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/sheet_add"/>
+            android:padding="10dp"
+            android:layout_marginBottom="10dp">
             <TextView
+                android:id="@+id/expense_detail_sheet_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_marginLeft="5dp"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:text="Sheet Name"/>
+            <TextView
+                android:id="@+id/total_amount_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
-                android:text="ADD ITEM"/>
+                android:layout_marginLeft="10dp"
+                android:textSize="15sp"
+                android:text="Total Amount"/>
         </LinearLayout>
 
-
-
         <LinearLayout
-            android:id="@+id/button_submit_expense_sheet"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_alignParentRight="true"
-            android:background="@drawable/button_bg_filled_white"
-            android:padding="10dp">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_marginRight="5dp"
-                android:layout_gravity="center_vertical"
-                android:text="SUBMIT"/>
+            android:layout_alignParentRight="true">
             <ImageView
+                android:id="@+id/button_add_expense_item"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:padding="5dp"
+                android:src="@drawable/sheet_add"/>
+
+            <ImageView
+                android:id="@+id/button_submit_expense_sheet"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_margin="5dp"
+                android:padding="5dp"
                 android:src="@drawable/sheet_submit"/>
         </LinearLayout>
 
-
-
     </RelativeLayout>
-
-
+    </android.support.v7.widget.CardView>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/expenses_sheet_add_item_view"

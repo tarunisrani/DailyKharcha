@@ -1,10 +1,12 @@
 package com.tarunisrani.dailykharcha.utils;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.NotificationCompat;
 
@@ -15,6 +17,7 @@ import com.tarunisrani.dailykharcha.listeners.ServiceConnectionListener;
 import com.tarunisrani.dailykharcha.model.Group;
 
 import static android.content.Context.NOTIFICATION_SERVICE;
+import static com.tarunisrani.dailykharcha.utils.AppConstant.INTENT_KEY_BUNDLE;
 
 /**
  * Created by tarunisrani on 2/14/17.
@@ -116,5 +119,17 @@ public class AppUtils {
             mListener.onServiceBind(service);
         }
     });
+
+    public static void openNewScreen(Activity activity, Class cls, boolean finish, Bundle bundle){
+        Intent intent = new Intent(activity, cls);
+
+        if(bundle != null){
+            intent.putExtra(INTENT_KEY_BUNDLE, bundle);
+        }
+        activity.startActivity(intent);
+        if(finish){
+            activity.finish();
+        }
+    }
 
 }

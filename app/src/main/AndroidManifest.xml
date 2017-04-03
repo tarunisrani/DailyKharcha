@@ -33,6 +33,8 @@
             android:label="Login"/>
         <activity android:name=".android.SignUpActivity"
             android:label="Signup"/>
+        <activity android:name=".android.ShareGroupActivity"
+            android:label="Share Group"/>
         <service
             android:name=".android.BackendService"
             android:icon="@mipmap/dailykharcha_app_icon"

@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:background="@android:color/holo_orange_light"
+    android:background="@color/colorBG"
     tools:context=".android.ExpenseActivity">
     <android.support.v7.widget.Toolbar
         android:id="@+id/expense_toolbar"
@@ -14,115 +14,70 @@
         android:background="?attr/colorPrimary"
         android:elevation="4dp"/>
 
-
-
-    <LinearLayout
+    <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-        <!--<Button
-            android:id="@+id/button_logout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="10dp"
-            android:text="Logout"/>-->
-
-        <Spinner
-            android:id="@+id/group_list_spinner"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_gravity="center"
-            android:background="@drawable/button_bg_filled_white"></Spinner>
+            android:layout_height="wrap_content">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <LinearLayout
-                android:id="@+id/button_remove_group"
+            <Spinner
+                android:id="@+id/group_list_spinner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="5dp"
-                android:layout_marginLeft="5dp"
-                android:padding="10dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="5dp"
-                    android:textSize="10sp"
-                    android:layout_gravity="center_vertical"
-                    android:text="Remove Group"/>
+                android:minWidth="200dp"
+                android:layout_margin="5dp"
+                android:layout_gravity="center"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:orientation="horizontal">
+
                 <ImageView
+                    android:id="@+id/button_remove_group"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:layout_margin="5dp"
                     android:src="@drawable/minus"/>
-            </LinearLayout>
-            <LinearLayout
-                android:id="@+id/button_share_all_expense_sheet"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="5dp"
-                android:layout_marginLeft="5dp"
-                android:background="@drawable/button_bg_filled_white"
-                android:padding="10dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="5dp"
-                    android:textSize="10sp"
-                    android:layout_gravity="center_vertical"
-                    android:text="Share Group"/>
                 <ImageView
+                    android:id="@+id/button_share_all_expense_sheet"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:layout_margin="5dp"
                     android:src="@drawable/share_icon"/>
-            </LinearLayout>
-            <LinearLayout
-                android:id="@+id/button_add_new_expense_sheet"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="5dp"
-                android:layout_marginLeft="5dp"
-                android:background="@drawable/button_bg_filled_white"
-                android:padding="10dp">
                 <ImageView
+                    android:id="@+id/button_add_new_expense_sheet"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:layout_margin="5dp"
                     android:src="@drawable/sheet_add"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:textSize="10sp"
-                    android:layout_gravity="center_vertical"
-                    android:text="ADD SHEET"/>
             </LinearLayout>
+        </RelativeLayout>
 
-        </LinearLayout>
-        <FrameLayout
+
+    </android.support.v7.widget.CardView>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/expenses_sheet_list_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/expenses_sheet_list_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/button_bg_hollow"
-                android:paddingRight="5dp"
-                android:paddingLeft="5dp"
-                android:layout_marginTop="10dp"/>
-            <ProgressBar
-                android:id="@+id/user_list_progressbar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="gone"/>
-        </FrameLayout>
-
-    </LinearLayout>
-
+            android:layout_height="wrap_content"
+            android:paddingRight="5dp"
+            android:paddingLeft="5dp"
+            android:layout_marginTop="10dp"/>
+        <ProgressBar
+            android:id="@+id/user_list_progressbar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"/>
+    </FrameLayout>
 
 </LinearLayout>
