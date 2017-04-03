@@ -7,37 +7,47 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/dailykharcha_app_icon"
+        android:icon="@drawable/daily_kharcha_logo"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:name=".android.MainApplication"
         android:theme="@style/AppTheme">
         <activity android:name=".android.MainActivity"
-            android:theme="@style/AppTheme">
+            android:theme="@style/AppTheme"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".android.TodoActivity"/>
-        <activity android:name=".android.ReminderActivity"/>
+        <activity android:name=".android.TodoActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".android.ReminderActivity"
+            android:screenOrientation="portrait"/>
         <activity android:name=".android.ExpenseActivity"
-            android:label="Expense Sheet List"/>
+            android:label="DailyKharcha"
+            android:screenOrientation="portrait"/>
         <activity android:name=".android.ExpenseDetailActivity"
-            android:label="Expense Sheet Details"/>
+            android:label="Expense Sheet Details"
+            android:screenOrientation="portrait"/>
         <activity android:name=".android.ExpenseAddItemActivity"
-            android:label="Expense Details"/>
+            android:label="Expense Details"
+            android:screenOrientation="portrait"/>
         <activity android:name=".android.AnalyseSheetActivity"
-            android:label="Analysis"/>
+            android:label="Analysis"
+            android:screenOrientation="portrait"/>
         <activity android:name=".android.LoginActivity"
-            android:label="Login"/>
+            android:label="Login"
+            android:screenOrientation="portrait"/>
         <activity android:name=".android.SignUpActivity"
-            android:label="Signup"/>
+            android:label="Signup"
+            android:screenOrientation="portrait"/>
         <activity android:name=".android.ShareGroupActivity"
-            android:label="Share Group"/>
+            android:label="Share Group"
+            android:screenOrientation="portrait"/>
         <service
             android:name=".android.BackendService"
-            android:icon="@mipmap/dailykharcha_app_icon"
+            android:icon="@drawable/daily_kharcha_logo"
             android:label="@string/app_name"
             android:stopWithTask="false"
             android:enabled="true">

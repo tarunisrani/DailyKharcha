@@ -11,7 +11,7 @@
         android:id="@+id/expense_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
+        android:background="@color/colorBG"
         android:elevation="4dp"/>
 
     <android.support.v7.widget.CardView
@@ -22,10 +22,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
+            <TextView
+                android:id="@+id/select_group_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:textSize="10sp"
+                android:text="Selected Group"/>
+
             <Spinner
                 android:id="@+id/group_list_spinner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_below="@id/select_group_label"
                 android:minWidth="200dp"
                 android:layout_margin="5dp"
                 android:layout_gravity="center"/>
@@ -33,6 +42,7 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_below="@id/select_group_label"
                 android:layout_alignParentRight="true"
                 android:orientation="horizontal">
 

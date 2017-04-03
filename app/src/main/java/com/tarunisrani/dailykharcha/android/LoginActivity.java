@@ -47,6 +47,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         TextView verification_message_label = (TextView) findViewById(R.id.verification_message_label);
         verification_message_label.setVisibility(show_message?View.VISIBLE:View.GONE);
 
+        findViewById(R.id.forgotpassword_button).setOnClickListener(this);
+
 
         Button button_submit = (Button) findViewById(R.id.login_button_submit);
         TextView button_signup = (TextView) findViewById(R.id.signup_button);
@@ -102,13 +104,24 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
     private void openDailyExpenseScreen(){
-        startActivity(new Intent(this, ExpenseActivity.class));
-        finish();
+        AppUtils.openNewScreen(this, ExpenseActivity.class, true, null);
+//        startActivity(new Intent(this, ExpenseActivity.class));
+//        finish();
     }
 
     private void performScreenChangeOperation(){
-        startActivity(new Intent(this, SignUpActivity.class));
-        finish();
+        AppUtils.openNewScreen(this, SignUpActivity.class, true, null);
+//        startActivity(new Intent(this, SignUpActivity.class));
+//        finish();
+    }
+
+    private void performForgotPasswordOperation(){
+        String email = email_input.getText().toString();
+        if(!email.isEmpty()) {
+            AppUtils.getService().performResetPassword(email);
+        }else{
+            Toast.makeText(this, "Please enter correct email", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void hideKeyboard() {
@@ -128,6 +141,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 break;
             case R.id.signup_button:
                 performScreenChangeOperation();
+                break;
+            case R.id.forgotpassword_button:
+                performForgotPasswordOperation();
                 break;
         }
     }

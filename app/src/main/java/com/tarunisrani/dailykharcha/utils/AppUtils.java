@@ -2,9 +2,11 @@ package com.tarunisrani.dailykharcha.utils;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -128,7 +130,20 @@ public class AppUtils {
         }
         activity.startActivity(intent);
         if(finish){
-            activity.finish();
+            activity.finishAffinity();
+        }
+    }
+
+    public static void showAlertDialog(Activity activity, String title, String msg, boolean showCancel, DialogInterface.OnClickListener positivelistener, DialogInterface.OnClickListener negativelistener){
+        if(activity != null && !activity.isFinishing()){
+            AlertDialog.Builder alert = new AlertDialog.Builder(activity);
+            alert.setTitle(title);
+            alert.setMessage(msg);
+            alert.setPositiveButton("YES", positivelistener);
+            if(showCancel) {
+                alert.setNegativeButton("NO", negativelistener);
+            }
+            alert.show();
         }
     }
 

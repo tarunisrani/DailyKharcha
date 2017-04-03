@@ -10,6 +10,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -544,7 +545,15 @@ public class BackendService extends Service {
 
     }
 
+    public void updateGroupEntryOnServer(Group group) {
+        String user_id = new SharedPreferrenceUtil().fetchUserID(this);
+        DatabaseReference reference = global_user_details_reference.child(user_id).child("group").child(group.getGroup_id());
+        reference.setValue(group);
+    }
+
     public void createGroupEntryOnServer(final Group group, final AddGroupOnServerListener listener) {
+        String user_id = new SharedPreferrenceUtil().fetchUserID(this);
+//        DatabaseReference reference = global_user_details_reference.child(user_id).child("group").child(group.getGroup_id());
         DatabaseReference reference = global_user_reference.child("group").child(group.getGroup_id());
 //        DatabaseReference reference = global_user_reference.child("group").push();
 
@@ -577,11 +586,11 @@ public class BackendService extends Service {
         reference.setValue(group);
     }
 
-    public void updateGroupEntryOnServer(Group group) {
+    /*public void removeGroupEntryFromServer(String group_id) {
         String user_id = new SharedPreferrenceUtil().fetchUserID(this);
-        DatabaseReference reference = global_user_details_reference.child(user_id).child("group").child(group.getGroup_id());
-        reference.setValue(group);
-    }
+        DatabaseReference reference = global_user_details_reference.child(user_id).child("group").child(group_id);
+        reference.setValue(null);
+    }*/
 
     public void removeGroupEntryFromServer(Group group) {
         String user_id = new SharedPreferrenceUtil().fetchUserID(this);
@@ -645,6 +654,29 @@ public class BackendService extends Service {
             }
         }
     }
+
+    /*public void removeSharedGroupEntriesFromServer(final ArrayList<String> userDetailses, String group_id) {
+
+            for(String user_id : userDetailses){
+
+                DatabaseReference reference = global_user_details_reference.child(user_id).child("sharedgroup").child(group_id);
+
+                reference.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+                reference.setValue(null);
+            }
+            removeGroupEntryFromServer(group_id);
+
+    }*/
 
     private ArrayList<String> generateUIDList(ArrayList<UserDetails> userDetailses){
         ArrayList<String> list = new ArrayList<>();
@@ -774,6 +806,24 @@ public class BackendService extends Service {
                         }
                     }
                 });
+    }
+
+    public void performResetPassword(String email){
+        mAuth.sendPasswordResetEmail(email).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
+                    Toast.makeText(BackendService.this, "Password Reset Email is sent.",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Toast.makeText(BackendService.this, e.toString(),
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     public void performSignInByToken(String token){

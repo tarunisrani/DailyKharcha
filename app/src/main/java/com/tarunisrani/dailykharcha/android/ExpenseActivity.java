@@ -1,6 +1,5 @@
 package com.tarunisrani.dailykharcha.android;
 
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -120,7 +119,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         getSupportActionBar().setDisplayShowTitleEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         getSupportActionBar().setHomeButtonEnabled(true);
-        getSupportActionBar().setIcon(R.mipmap.dailykharcha_app_icon);
+        getSupportActionBar().setIcon(R.drawable.daily_kharcha_logo);
 
 
 
@@ -264,26 +263,24 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
         String message = "Are you sure you want to delete "+sheet.getSheet_name();
 
-        AlertDialog.Builder alert = new AlertDialog.Builder(this);
-        alert.setTitle("Confirmation");
-        alert.setMessage(message);
-        alert.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+        AppUtils.showAlertDialog(this, "Confirmation", message, true, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if(removeSheet(sheet)){
-                    sheetListAdapter.removeItem(position);
-                    sheetListAdapter.notifyDataSetChanged();
-                }
+                removeSheet(sheet, position);
             }
-        });
-        alert.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
+        }, null);
 
-            }
-        });
-        alert.show();
+
     }
+
+    private void removeSheet(Sheet sheet, int position){
+
+        if(removeSheet(sheet)){
+            sheetListAdapter.removeItem(position);
+            sheetListAdapter.notifyDataSetChanged();
+        }
+    }
+
 
     private void performShareOperation(int position){
 
@@ -302,6 +299,16 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void performRemoveGroupOperation(){
+        AppUtils.showAlertDialog(this, "Confirmation", "Are you sure you want to delete this group?", true, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                removeGroup();
+            }
+        }, null);
+
+    }
+
+    private void removeGroup(){
         GroupDataSource groupDataSource = new GroupDataSource(this);
         Group group = groupDataSource.getGroup(selectedGroupid);
         if(group.getOwner_id().equalsIgnoreCase(new SharedPreferrenceUtil().fetchUserID(this))){
@@ -375,6 +382,41 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         AppUtils.openNewScreen(this, AnalyseSheetActivity.class, false, bundle);
     }
 
+    private boolean clearAllEditEnabledItems(){
+        int count =0;
+        for(int index = 0; index<sheetListAdapter.getItemCount(); index++) {
+            ExpenseSheetListAdapter.ViewHolder viewHolder = (ExpenseSheetListAdapter.ViewHolder)expenses_sheet_list_view.findViewHolderForAdapterPosition(index);
+            if(viewHolder!=null && viewHolder.isEditEnabled()){
+                viewHolder.hideControlPanel();
+                count++;
+            }
+        }
+        return count>0;
+    }
+
+    private void performAddGroupOperation(){
+        AddGroupDialog dialog = new AddGroupDialog(this, new AddGroupListener() {
+
+            @Override
+            public void onGroupAdded(final Group group) {
+                if(AppUtils.getService().createGroupEntryInDBIfNotExist(group)){
+                    user_list_progressbar.setVisibility(View.VISIBLE);
+                    Log.d("Add Group", "Group created successfully.");
+                    AppUtils.getService().createGroupEntryOnServer(group, new AddGroupOnServerListener() {
+                        @Override
+                        public void onGroupAddedOnServer() {
+                            user_list_progressbar.setVisibility(View.GONE);
+                            prepareListOfGroups();
+                            AppUtils.getService().startGroupRelatedListeners(group);
+                        }
+                    });
+                }
+            }
+        });
+        dialog.setTitle("Enter Group Detail");
+        dialog.show();
+    }
+
     @Override
     public void onClick(View view) {
         switch(view.getId()){
@@ -436,41 +478,6 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    private boolean clearAllEditEnabledItems(){
-        int count =0;
-        for(int index = 0; index<sheetListAdapter.getItemCount(); index++) {
-            ExpenseSheetListAdapter.ViewHolder viewHolder = (ExpenseSheetListAdapter.ViewHolder)expenses_sheet_list_view.findViewHolderForAdapterPosition(index);
-            if(viewHolder.isEditEnabled()){
-                viewHolder.hideControlPanel();
-                count++;
-            }
-        }
-        return count>0;
-    }
-
-    private void performAddGroupOperation(){
-        AddGroupDialog dialog = new AddGroupDialog(this, new AddGroupListener() {
-
-            @Override
-            public void onGroupAdded(final Group group) {
-                if(AppUtils.getService().createGroupEntryInDBIfNotExist(group)){
-                    user_list_progressbar.setVisibility(View.VISIBLE);
-                    Log.d("Add Group", "Group created successfully.");
-                    AppUtils.getService().createGroupEntryOnServer(group, new AddGroupOnServerListener() {
-                        @Override
-                        public void onGroupAddedOnServer() {
-                            user_list_progressbar.setVisibility(View.GONE);
-                            prepareListOfGroups();
-                            AppUtils.getService().startGroupRelatedListeners(group);
-                        }
-                    });
-                }
-            }
-        });
-        dialog.setTitle("Enter Group Detail");
-        dialog.show();
-    }
-
     @Override
     public void onBackPressed() {
         if(!clearAllEditEnabledItems()){
@@ -513,12 +520,18 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
             new SharedPreferrenceUtil().setSelectedGroup(this, selectedGroupid);
             fetchSheetList();
 
+            String group_id = new SharedPreferrenceUtil().fetchUserID(this) + "_default";
+
             if(!selected_group.getOwner_id().equalsIgnoreCase(new SharedPreferrenceUtil().fetchUserID(this))){
                 button_share_all_expense_sheet.setVisibility(View.GONE);
                 button_remove_group.setVisibility(View.GONE);
             }else{
                 button_share_all_expense_sheet.setVisibility(View.VISIBLE);
                 button_remove_group.setVisibility(View.VISIBLE);
+            }
+
+            if(selected_group.getGroup_id().equalsIgnoreCase(group_id)){
+                button_remove_group.setVisibility(View.GONE);
             }
 
         }
@@ -545,9 +558,9 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_settings:
+//            case R.id.action_settings:
                 // User chose the "Settings" item, show the app settings UI...
-                return true;
+//                return true;
 
             case R.id.action_logout:
                 // User chose the "Favorite" action, mark the current item

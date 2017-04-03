@@ -154,11 +154,11 @@ public class ExpenseSheetListAdapter extends RecyclerView.Adapter<ExpenseSheetLi
                                     mListener.onMenuClick(position, MENU_OPTION_REMOVE, holder);
                                 }
                                 break;
-                            case R.id.menu3:
+                            /*case R.id.menu3:
                                 if(mListener!=null) {
                                     mListener.onMenuClick(position, MENU_OPTION_SHARE, holder);
                                 }
-                                break;
+                                break;*/
                             case R.id.menu4:
                                 if(mListener!=null) {
                                     mListener.onMenuClick(position, MENU_OPTION_ANALYZE, holder);

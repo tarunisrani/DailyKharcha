@@ -10,6 +10,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+
+
+
         <TextView
             android:id="@+id/group_list_name"
             android:layout_marginTop="5dp"
@@ -21,14 +24,27 @@
             android:ellipsize="middle"
             android:text="Group Name"/>
 
-        <TextView
-            android:id="@+id/group_list_owner_name"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:textSize="10sp"
-            android:text="Owner Name"
-            android:layout_below="@id/group_list_name"/>
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_marginRight="5dp"
+                android:textSize="10sp"
+                android:text="Creator:"
+                android:layout_below="@id/group_list_name"/>
+            <TextView
+                android:id="@+id/group_list_owner_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:text="Owner Name"
+                android:layout_below="@id/group_list_name"/>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/group_list_uid"
