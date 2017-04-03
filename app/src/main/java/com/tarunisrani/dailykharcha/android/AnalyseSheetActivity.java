@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.widget.Toast;
 
 import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.adapters.CustomPagerAdapter;
@@ -41,18 +42,25 @@ public class AnalyseSheetActivity extends FragmentActivity implements TabLayout.
             sheet = intent.getParcelableExtra(INTENT_KEY_SHEET);
         }
 
-        setPieData(sheet);
+        if(sheet != null) {
+            setPieData(sheet);
 
-        CustomPagerAdapter adapter = new CustomPagerAdapter(getSupportFragmentManager());
+            CustomPagerAdapter adapter = new CustomPagerAdapter(getSupportFragmentManager());
 
-        adapter.addItem(pieChartFragment, "Pie Chart");
-        adapter.addItem(barChartFragment, "Bar Chart");
+            adapter.addItem(pieChartFragment, "Pie Chart");
+            adapter.addItem(barChartFragment, "Bar Chart");
 
-        mViewPager.setAdapter(adapter);
-        mViewPager.setOffscreenPageLimit(2);
+            mViewPager.setAdapter(adapter);
+            mViewPager.setOffscreenPageLimit(2);
 
-        tabLayout.setOnTabSelectedListener(this);
-        tabLayout.setupWithViewPager(mViewPager);
+            tabLayout.setOnTabSelectedListener(this);
+            tabLayout.setupWithViewPager(mViewPager);
+        }else{
+            Toast.makeText(this, "There is no data to show", Toast.LENGTH_SHORT).show();
+            finish();
+        }
+
+
 
     }
 

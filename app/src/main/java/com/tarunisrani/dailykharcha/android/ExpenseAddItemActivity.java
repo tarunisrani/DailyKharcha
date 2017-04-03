@@ -12,8 +12,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.tarunisrani.dailykharcha.R;
 import com.tarunisrani.dailykharcha.model.Expense;
@@ -29,9 +29,9 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
     private EditText expense_add_item_amount;
     private Spinner expense_add_item_expense_type_spinner;
     private Spinner expense_add_item_payment_type_spinner;
-    private ImageView expense_add_item_submit;
-    private ImageView expense_add_item_reset;
-    private ImageView expense_add_item_edit;
+    private TextView expense_add_item_submit;
+    private TextView expense_add_item_reset;
+    private TextView expense_add_item_edit;
 
     private ArrayList<String> payment_type_list;
     private ArrayList<String> expense_type_list;
@@ -58,9 +58,9 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
         expense_add_item_amount = (EditText) findViewById(R.id.expense_add_item_amount);
         expense_add_item_expense_type_spinner = (Spinner) findViewById(R.id.expense_add_item_expense_type_spinner);
         expense_add_item_payment_type_spinner = (Spinner) findViewById(R.id.expense_add_item_payment_type_spinner);
-        expense_add_item_submit = (ImageView) findViewById(R.id.expense_add_item_submit);
-        expense_add_item_reset = (ImageView) findViewById(R.id.expense_add_item_reset);
-        expense_add_item_edit = (ImageView) findViewById(R.id.expense_add_item_edit);
+        expense_add_item_submit = (TextView) findViewById(R.id.expense_add_item_submit);
+        expense_add_item_reset = (TextView) findViewById(R.id.expense_add_item_reset);
+        expense_add_item_edit = (TextView) findViewById(R.id.expense_add_item_edit);
 
         expense_type_list = new ArrayList<>();
         expense_type_list.add("Grocery");

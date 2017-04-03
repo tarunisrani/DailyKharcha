@@ -21,8 +21,8 @@
         android:title="logout" />
 
     <!-- Settings, should always be in the overflow -->
-    <item android:id="@+id/action_settings"
-        android:title="settings"
-        app:showAsAction="ifRoom"/>
+    <!--<item android:id="@+id/action_settings"-->
+        <!--android:title="settings"-->
+        <!--app:showAsAction="ifRoom"/>-->
 
 </menu>
