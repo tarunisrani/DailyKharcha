@@ -10,31 +10,34 @@
 
     <android.support.v7.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingLeft="15dp"
             android:paddingRight="15dp">
 
-            <ImageView
+            <TextView
                 android:id="@+id/expense_add_item_reset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
                 android:padding="5dp"
-                android:src="@drawable/delete_1"/>
+                android:textColor="@color/colorRed"
+                android:text="RESET"/>
 
-            <ImageView
+            <TextView
                 android:id="@+id/expense_add_item_submit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="5dp"
                 android:padding="5dp"
                 android:layout_alignParentRight="true"
-                android:src="@drawable/checkmark"/>
+                android:textColor="@color/colorGreen"
+                android:text="SUBMIT"/>
 
-            <ImageView
+            <TextView
                 android:id="@+id/expense_add_item_edit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -42,7 +45,8 @@
                 android:padding="5dp"
                 android:layout_alignParentRight="true"
                 android:visibility="gone"
-                android:src="@drawable/edit"/>
+                android:textColor="@color/colorBlue"
+                android:text="EDIT"/>
 
         </RelativeLayout>
 

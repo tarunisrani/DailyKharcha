@@ -251,6 +251,7 @@ public class ExpenseDetailActivity extends AppCompatActivity implements View.OnC
         ExpenseDataSource expenseDataSource = new ExpenseDataSource(this);
         if(expenseDataSource.removeExpenseEntry(expense)){
             Log.e("Remove Expense", "SUCCESSFUL");
+            AppUtils.getService().removeExpenseEntryFromServer(expense);
             return true;
         }else{
             Log.e("Remove Expense", "FAILURE");
