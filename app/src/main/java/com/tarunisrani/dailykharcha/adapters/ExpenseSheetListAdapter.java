@@ -214,6 +214,11 @@ public class ExpenseSheetListAdapter extends RecyclerView.Adapter<ExpenseSheetLi
 
         public void showControlPanel(){
             this.view_flipper.showPrevious();
+            this.sheet_name_edittext.requestFocus();
+//            this.sheet_name_edittext.requestFocusFromTouch();
+            this.sheet_name_edittext.setSelection(sheet_name_edittext.getText().length(), sheet_name_edittext.getText().length());
+
+//            this.sheet_name_edittext.setEnabled(true);
 //            this.sheet_name_edittext.setEnabled(true);
             this.ok_button.setVisibility(View.VISIBLE);
             this.cancel_button.setVisibility(View.VISIBLE);

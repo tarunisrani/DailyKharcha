@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -264,8 +265,14 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         return false;
     }
 
-    private void performEditOperation(int position, ExpenseSheetListAdapter.ViewHolder viewHolder){
+    private void performRenameSheetOperation(int position, ExpenseSheetListAdapter.ViewHolder viewHolder){
         viewHolder.showControlPanel();
+//        showKeyBoard(viewHolder.itemView);
+    }
+
+    private boolean showKeyBoard(View view) {
+        return ((InputMethodManager) getSystemService(
+                Context.INPUT_METHOD_SERVICE)).showSoftInput(view, InputMethodManager.SHOW_FORCED);
     }
 
     private void performRemoveOperation(final int position){
@@ -491,7 +498,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     public void onMenuClick(int position, int index, ExpenseSheetListAdapter.ViewHolder viewHolder) {
         switch (index){
             case ExpenseSheetListAdapter.MENU_OPTION_RENAME:
-                performEditOperation(position, viewHolder);
+                performRenameSheetOperation(position, viewHolder);
                 break;
             case ExpenseSheetListAdapter.MENU_OPTION_REMOVE:
                 performRemoveOperation(position);
