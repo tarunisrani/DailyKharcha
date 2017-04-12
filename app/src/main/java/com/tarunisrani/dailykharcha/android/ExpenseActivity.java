@@ -428,6 +428,22 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         dialog.show();
     }
 
+    private void performLogOutOperation(){
+
+        AppUtils.showAlertDialog(this, "Confirmation", "Are you sure you want to log out the app?", true, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                logout();
+            }
+        }, null);
+
+    }
+
+    private void logout(){
+        AppUtils.getService().performSignOut();
+        openLoginScreen();
+    }
+
     @Override
     public void onClick(View view) {
         switch(view.getId()){
@@ -576,8 +592,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.action_logout:
                 // User chose the "Favorite" action, mark the current item
                 // as a favorite...
-                AppUtils.getService().performSignOut();
-                openLoginScreen();
+                performLogOutOperation();
                 return true;
 
             default:
