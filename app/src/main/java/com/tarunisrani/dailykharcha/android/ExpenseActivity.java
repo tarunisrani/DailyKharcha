@@ -240,8 +240,18 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(this);
         ExpenseDataSource expenseDataSource = new ExpenseDataSource(this);
         ArrayList<Expense> expenseItems = expenseDataSource.getExpenseItems(sheet.getSheet_id());
-        if(expenseDataSource.removeExpenseEntry(expenseItems)){
-            AppUtils.getService().removeExpenseEntryFromServer(expenseItems);
+        if(expenseItems.size()>0){
+            if(expenseDataSource.removeExpenseEntry(expenseItems)){
+                AppUtils.getService().removeExpenseEntryFromServer(expenseItems);
+                if(expenseSheetDataSource.removeSheetEntry(sheet)){
+                    Log.e("Remove Sheet", "SUCCESSFUL");
+                    AppUtils.getService().removeSheetEntryFromServer(sheet);
+                    return true;
+                }else{
+                    Log.e("Remove Sheet", "FAILURE");
+                }
+            }
+        }else{
             if(expenseSheetDataSource.removeSheetEntry(sheet)){
                 Log.e("Remove Sheet", "SUCCESSFUL");
                 AppUtils.getService().removeSheetEntryFromServer(sheet);
@@ -250,6 +260,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
                 Log.e("Remove Sheet", "FAILURE");
             }
         }
+
         return false;
     }
 
