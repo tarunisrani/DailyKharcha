@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -240,8 +241,18 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         ExpenseSheetDataSource expenseSheetDataSource = new ExpenseSheetDataSource(this);
         ExpenseDataSource expenseDataSource = new ExpenseDataSource(this);
         ArrayList<Expense> expenseItems = expenseDataSource.getExpenseItems(sheet.getSheet_id());
-        if(expenseDataSource.removeExpenseEntry(expenseItems)){
-            AppUtils.getService().removeExpenseEntryFromServer(expenseItems);
+        if(expenseItems.size()>0){
+            if(expenseDataSource.removeExpenseEntry(expenseItems)){
+                AppUtils.getService().removeExpenseEntryFromServer(expenseItems);
+                if(expenseSheetDataSource.removeSheetEntry(sheet)){
+                    Log.e("Remove Sheet", "SUCCESSFUL");
+                    AppUtils.getService().removeSheetEntryFromServer(sheet);
+                    return true;
+                }else{
+                    Log.e("Remove Sheet", "FAILURE");
+                }
+            }
+        }else{
             if(expenseSheetDataSource.removeSheetEntry(sheet)){
                 Log.e("Remove Sheet", "SUCCESSFUL");
                 AppUtils.getService().removeSheetEntryFromServer(sheet);
@@ -250,11 +261,18 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
                 Log.e("Remove Sheet", "FAILURE");
             }
         }
+
         return false;
     }
 
-    private void performEditOperation(int position, ExpenseSheetListAdapter.ViewHolder viewHolder){
+    private void performRenameSheetOperation(int position, ExpenseSheetListAdapter.ViewHolder viewHolder){
         viewHolder.showControlPanel();
+//        showKeyBoard(viewHolder.itemView);
+    }
+
+    private boolean showKeyBoard(View view) {
+        return ((InputMethodManager) getSystemService(
+                Context.INPUT_METHOD_SERVICE)).showSoftInput(view, InputMethodManager.SHOW_FORCED);
     }
 
     private void performRemoveOperation(final int position){
@@ -417,6 +435,22 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         dialog.show();
     }
 
+    private void performLogOutOperation(){
+
+        AppUtils.showAlertDialog(this, "Confirmation", "Are you sure you want to log out the app?", true, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                logout();
+            }
+        }, null);
+
+    }
+
+    private void logout(){
+        AppUtils.getService().performSignOut();
+        openLoginScreen();
+    }
+
     @Override
     public void onClick(View view) {
         switch(view.getId()){
@@ -464,7 +498,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     public void onMenuClick(int position, int index, ExpenseSheetListAdapter.ViewHolder viewHolder) {
         switch (index){
             case ExpenseSheetListAdapter.MENU_OPTION_RENAME:
-                performEditOperation(position, viewHolder);
+                performRenameSheetOperation(position, viewHolder);
                 break;
             case ExpenseSheetListAdapter.MENU_OPTION_REMOVE:
                 performRemoveOperation(position);
@@ -565,8 +599,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
             case R.id.action_logout:
                 // User chose the "Favorite" action, mark the current item
                 // as a favorite...
-                AppUtils.getService().performSignOut();
-                openLoginScreen();
+                performLogOutOperation();
                 return true;
 
             default:

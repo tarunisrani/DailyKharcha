@@ -23,7 +23,6 @@
                 android:layout_marginRight="5dp"
                 android:textAlignment="textStart"
                 android:textSize="15sp"
-                android:singleLine="true"
                 android:maxLines="1"
                 android:ellipsize="middle"
                 android:text="Sheet Name"/>
@@ -39,7 +38,6 @@
                 android:layout_marginRight="5dp"
                 android:textAlignment="textStart"
                 android:textSize="15sp"
-                android:singleLine="true"
                 android:maxLines="1"
                 android:ellipsize="middle"
                 android:text="Sheet Name"/>

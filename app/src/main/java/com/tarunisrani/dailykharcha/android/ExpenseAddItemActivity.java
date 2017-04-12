@@ -103,7 +103,7 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) {
-//                    showDatePicker();
+                    showDatePicker();
                 }
             }
         });
