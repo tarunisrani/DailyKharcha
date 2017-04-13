@@ -7,7 +7,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/daily_kharcha_logo"
+        android:icon="@mipmap/dailykharchaicon"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:name=".android.MainApplication"
@@ -47,7 +47,7 @@
             android:screenOrientation="portrait"/>
         <service
             android:name=".android.BackendService"
-            android:icon="@drawable/daily_kharcha_logo"
+            android:icon="@mipmap/dailykharchaicon"
             android:label="@string/app_name"
             android:stopWithTask="false"
             android:enabled="true">

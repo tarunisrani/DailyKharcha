@@ -88,9 +88,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void openDailyExpenseScreen(){
-        Intent intent = new Intent(this, ExpenseActivity.class);
-        startActivity(intent);
-        finish();
+        AppUtils.openNewScreen(this, ExpenseActivity.class, true, null);
+//        Intent intent = new Intent(this, ExpenseActivity.class);
+//        startActivity(intent);
+//        finish();
     }
 
     private void performLoggedInOperation(){
@@ -99,12 +100,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         AppUtils.getService().initializeFirebase(user.getUid());
         AppUtils.getService().startListeners(user.getUid());
         openDailyExpenseScreen();
-        finish();
     }
 
     private void openLoginScreen(){
-        startActivity(new Intent(this, LoginActivity.class));
-        finish();
+        AppUtils.openNewScreen(this, LoginActivity.class, true, null);
+//        startActivity(new Intent(this, LoginActivity.class));
+//        finish();
     }
 
     @Override

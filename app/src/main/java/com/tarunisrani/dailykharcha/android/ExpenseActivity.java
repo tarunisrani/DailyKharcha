@@ -120,7 +120,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
         getSupportActionBar().setDisplayShowTitleEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         getSupportActionBar().setHomeButtonEnabled(true);
-        getSupportActionBar().setIcon(R.drawable.daily_kharcha_logo);
+        getSupportActionBar().setIcon(R.mipmap.dailykharchaicon);
 
 
 

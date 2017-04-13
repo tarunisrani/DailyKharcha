@@ -47,6 +47,8 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
     private String expense_id = null;
     private String server_expense_id = "";
 
+    private boolean editable = false;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,7 +94,7 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
         Intent intent = getIntent();
         if(intent!=null){
             Expense expense = intent.getParcelableExtra(AppConstant.INTENT_KEY_EXPENSE);
-            boolean editable = intent.getBooleanExtra(AppConstant.INTENT_KEY_EDITABLE, false);
+            editable = intent.getBooleanExtra(AppConstant.INTENT_KEY_EDITABLE, false);
             processIntent(expense);
             if(editable){
                 performEditOperation();
@@ -140,6 +142,9 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
 
     private void showDatePicker() {
 
+        if(!editable)
+            return;
+
         final Calendar c = Calendar.getInstance();
         final int year = c.get(Calendar.YEAR);
         final int month = c.get(Calendar.MONTH);
@@ -161,6 +166,7 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
         });
 
         d.setCancelable(true);
+
         d.show();
     }
 
@@ -193,6 +199,7 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
     }
 
     private void performEditOperation(){
+        editable = true;
         expense_add_item_submit.setVisibility(View.VISIBLE);
         expense_add_item_reset.setVisibility(View.VISIBLE);
         expense_add_item_edit.setVisibility(View.GONE);
