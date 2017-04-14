@@ -47,7 +47,7 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
     private String expense_id = null;
     private String server_expense_id = "";
 
-    private boolean editable = false;
+    private boolean editable = true;
 
 
     @Override
@@ -94,7 +94,7 @@ public class ExpenseAddItemActivity extends AppCompatActivity implements View.On
         Intent intent = getIntent();
         if(intent!=null){
             Expense expense = intent.getParcelableExtra(AppConstant.INTENT_KEY_EXPENSE);
-            editable = intent.getBooleanExtra(AppConstant.INTENT_KEY_EDITABLE, false);
+            editable = intent.getBooleanExtra(AppConstant.INTENT_KEY_EDITABLE, true);
             processIntent(expense);
             if(editable){
                 performEditOperation();
