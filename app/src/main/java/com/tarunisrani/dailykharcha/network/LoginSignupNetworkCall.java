@@ -41,6 +41,8 @@ public class LoginSignupNetworkCall {
             public void onLoginCompleted(FirebaseUser user) {
                 if(user!=null){
                     listener.onLoginCompleted(user);
+                }else{
+                    listener.onLoginFailed();
                 }
             }
         });

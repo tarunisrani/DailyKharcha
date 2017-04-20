@@ -798,6 +798,9 @@ public class BackendService extends Service {
                             Log.w(TAG, "signInWithEmail:failed", task.getException());
                             Toast.makeText(BackendService.this, "SignIn Failed",
                                     Toast.LENGTH_SHORT).show();
+                            if(listener!=null){
+                                listener.onLoginCompleted(null);
+                            }
                         }else{
 
                             if(listener!=null){
